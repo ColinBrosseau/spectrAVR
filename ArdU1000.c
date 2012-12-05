@@ -7,27 +7,27 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define LED PB5 // Define led pin on PB5
+#define LED PB4 // Define output pin on PB4 (Arduino #12)
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
 
-int pulses = HIGH; //a pulse is when logic level goes to low
-int switchToDo = 0; //number of LED state change remaining
+int pulses = LOW; //a pulse is when logic level goes to low
+unsigned long switchToDo = 0; //number of LED state change remaining
 int pulseDuration; //duration of the pulse (timer units)
-int period = 3906; //duration between pulses (timer units) (0.2 s)
+int period = 16000; //duration between pulses (timer units) (1 ms)
 
-#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
+//#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
-//void setPulseDuration(int period)
-//{
-//  pulseDuration = period*DUTY;
-// }
+void setPulse(unsigned long steps)
+{
+switchToDo = 2 * steps;
+}
 
 int main(void)
 {
-  setPulse(10);
+  setPulse(20000);
   setPulseDuration(period);
   
   DDRB |= (1 << LED); // Set output on LED pin
@@ -37,10 +37,10 @@ int main(void)
   else 
     PORTB |= (1 << LED); // led goes high 
   
-  OCR1A = 7812; //0.5 s per pulse
+  OCR1A = 1; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match   
-  TCCR1B |= (1 << CS12) | (1 << CS10); // set prescaler to 1024 and start the timer    
+  TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer    
   
   sei(); // enable interrupts
   
