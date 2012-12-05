@@ -13,7 +13,7 @@
 
 #define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 
-int pulses = LOW; //a pulse is when logic level goes to low
+int pulses = HIGH; //a pulse is when logic level goes to low
 int switchToDo = 0; //number of LED state change remaining
 
 int main(void)
@@ -22,12 +22,10 @@ int main(void)
   
   DDRB |= (1 << LED); // Set output on LED pin
   //setup led at default level
-  if (pulses){
+  if (pulses)
     PORTB &= ~(1 << LED); // led goes low 
-  }
-  else {
+  else 
     PORTB |= (1 << LED); // led goes high 
-  }
   
   OCR1A = 7812; //0.5 s per pulse
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
@@ -43,6 +41,10 @@ int main(void)
 
 ISR (TIMER1_COMPA_vect)
 {
+  if (switchToDo % 2 == 0)
+        OCR1A = 1562;      // Duration of the pulses
+    else
+        OCR1A = 14062;     // Duration of inter-pulses
   if (switchToDo > 0) {
     switchToDo -= 1;
     PORTB^= _BV(LED); //toggle LED pin 
