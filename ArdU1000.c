@@ -10,7 +10,7 @@
 #define LED PB5 // Define led pin on PB5
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
-#define DUTY 10 //duty cycle
+#define DUTY 10 //duty cycle (in %)
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 int switchToDo = 0; //number of LED state change remaining
