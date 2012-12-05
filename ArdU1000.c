@@ -8,6 +8,7 @@
 #include <avr/interrupt.h>
 
 #define LED PB4 // Define output pin on PB4 (Arduino #12)
+#define LED2 PB5 // Define output pin on PB4 (Arduino #13)
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
@@ -20,6 +21,18 @@ int period = 16000; //duration between pulses (timer units) (1 ms)
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
+// this is just a program that 'kills time' in a calibrated method
+void delay_ms(uint16_t ms) {
+  uint16_t delay_count = F_CPU / 17500;
+  volatile uint16_t i;
+
+  while (ms != 0) {
+    for (i=0; i != delay_count; i++);
+    ms--;
+  }
+}
+
+
 void setPulse(unsigned long steps)
 {
 switchToDo = 2 * steps;
@@ -27,10 +40,12 @@ switchToDo = 2 * steps;
 
 int main(void)
 {
-  setPulse(20000);
+  setPulse(500000);
   setPulseDuration(period);
-  
+
   DDRB |= (1 << LED); // Set output on LED pin
+  DDRB |= (1 << LED2); // Set output on LED2 pin
+  PORTB |= (1 << LED2); // led2 goes high 
   //setup led at default level
   if (pulses)
     PORTB &= ~(1 << LED); // led goes low 
@@ -43,9 +58,11 @@ int main(void)
   TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer    
   
   sei(); // enable interrupts
-  
+
   while (1);
   {
+    delay_ms(500);
+    PORTB ^= _BV(LED2); //toggle LED2 pin 
   }
 }
 
@@ -57,7 +74,7 @@ ISR (TIMER1_COMPA_vect)
         OCR1A = period - pulseDuration;     // Duration of inter-pulses
   if (switchToDo > 0) {
     switchToDo -= 1;
-    PORTB^= _BV(LED); //toggle LED pin 
+    PORTB ^= _BV(LED); //toggle LED pin 
   }
 }
 
