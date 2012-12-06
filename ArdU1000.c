@@ -17,8 +17,9 @@
 int pulses = LOW; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
-volatile int period = 16000; //duration between pulses (timer units) (1 ms)
+volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
+volatile unsigned long i = 0;
 
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
@@ -36,7 +37,7 @@ int main(void)
   MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66)
   sei();//turn on interrupts
 
-  setPulse(500000);
+  setPulse(40000);
   setPulseDuration(period);
 
   DDRB |= (1 << PULSES); // Set output on PULSES pin
@@ -62,8 +63,12 @@ int main(void)
 
 ISR (TIMER1_COMPA_vect)
 {
-  if (switchToDo % 2 == 0)
-        OCR1A = pulseDuration;      // Duration of the pulses
+   if (switchToDo % 2 == 0){
+     i++;
+     if (i<500)
+       period = 6000 + 12 * (500-i);
+     OCR1A = pulseDuration;      // Duration of the pulses
+    }
     else
         OCR1A = period - pulseDuration;     // Duration of inter-pulses
   if (switchToDo > 0) {

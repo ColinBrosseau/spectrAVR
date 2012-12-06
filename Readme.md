@@ -2,4 +2,6 @@ Create impulsions (an impulsion is low logic level) on a pin of the uC. Pin is a
 
 On falling edge on PD2 (Arduino Digital #2) we toggle pin PB5 (Arduino Digital #13, with led). This is NOT debounced.
 
+There is now an auto acceleration feature to test spectrometer capabilities.
+
 At present state, works on an Arduino NG (Atmega8 @ 16 MHz). The impultions pin is PB4 (Arduino pin 12).
