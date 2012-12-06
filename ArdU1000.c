@@ -7,8 +7,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define LED PB4 // Define output pin on PB4 (Arduino #12)
-#define LED2 PB5 // Define output pin on PB4 (Arduino #13)
+#define PUSH PD2 // Define push-button pin on PD2 (Arduino Digital #2)
+#define LED PB4 // Define output pin on PB4 (Arduino Digital #12)
+#define LED2 PB5 // Define output pin on PB4 (Arduino Digital #13)
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
@@ -21,18 +22,6 @@ int period = 16000; //duration between pulses (timer units) (1 ms)
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
-// this is just a program that 'kills time' in a calibrated method
-void delay_ms(uint16_t ms) {
-  uint16_t delay_count = F_CPU / 17500;
-  volatile uint16_t i;
-
-  while (ms != 0) {
-    for (i=0; i != delay_count; i++);
-    ms--;
-  }
-}
-
-
 void setPulse(unsigned long steps)
 {
 switchToDo = 2 * steps;
@@ -40,6 +29,12 @@ switchToDo = 2 * steps;
 
 int main(void)
 {
+ 
+  //Turn on Push button pin interrupt on falling edge.
+  GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
+  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66)
+  sei();//turn on interrupts
+
   setPulse(500000);
   setPulseDuration(period);
 
@@ -61,8 +56,6 @@ int main(void)
 
   while (1);
   {
-    delay_ms(500);
-    PORTB ^= _BV(LED2); //toggle LED2 pin 
   }
 }
 
@@ -78,3 +71,7 @@ ISR (TIMER1_COMPA_vect)
   }
 }
 
+ISR(INT0_vect)
+{
+  PORTB ^= _BV(LED2); //toggle LED2 pin 
+} 
