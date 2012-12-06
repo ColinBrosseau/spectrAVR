@@ -75,5 +75,7 @@ ISR (TIMER1_COMPA_vect)
 ISR(INT0_vect)
 {
   PORTB ^= _BV(LED); //toggle LED pin 
-  period *= 99/100;
+  period /= 100;
+  period *= 99;
+  setPulseDuration(period);
 } 
