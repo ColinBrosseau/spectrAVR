@@ -8,14 +8,14 @@
 #include <avr/interrupt.h>
 
 #define PUSH PD2 // Define push-button pin on PD2 (Arduino Digital #2)
-#define LED PB4 // Define output pin on PB4 (Arduino Digital #12)
+#define PULSES PB4 // Define output pin on PB4 (Arduino Digital #12)
 #define LED2 PB5 // Define output pin on PB4 (Arduino Digital #13)
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
 
 int pulses = LOW; //a pulse is when logic level goes to low
-unsigned long switchToDo = 0; //number of LED state change remaining
+unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
 int period = 16000; //duration between pulses (timer units) (1 ms)
 
@@ -38,14 +38,14 @@ int main(void)
   setPulse(500000);
   setPulseDuration(period);
 
-  DDRB |= (1 << LED); // Set output on LED pin
+  DDRB |= (1 << PULSES); // Set output on PULSES pin
   DDRB |= (1 << LED2); // Set output on LED2 pin
   PORTB |= (1 << LED2); // led2 goes high 
   //setup led at default level
   if (pulses)
-    PORTB &= ~(1 << LED); // led goes low 
+    PORTB &= ~(1 << PULSES); // led goes low 
   else 
-    PORTB |= (1 << LED); // led goes high 
+    PORTB |= (1 << PULSES); // led goes high 
   
   OCR1A = 1; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
@@ -67,7 +67,7 @@ ISR (TIMER1_COMPA_vect)
         OCR1A = period - pulseDuration;     // Duration of inter-pulses
   if (switchToDo > 0) {
     switchToDo -= 1;
-    PORTB ^= _BV(LED); //toggle LED pin 
+    PORTB ^= _BV(PULSES); //toggle PULSES pin 
   }
 }
 
