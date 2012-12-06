@@ -9,7 +9,7 @@
 
 #define PUSH PD2 // Define push-button pin on PD2 (Arduino Digital #2)
 #define PULSES PB4 // Define output pin on PB4 (Arduino Digital #12)
-#define LED2 PB5 // Define output pin on PB4 (Arduino Digital #13)
+#define LED PB5 // Define output pin on PB4 (Arduino Digital #13)
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
@@ -39,8 +39,8 @@ int main(void)
   setPulseDuration(period);
 
   DDRB |= (1 << PULSES); // Set output on PULSES pin
-  DDRB |= (1 << LED2); // Set output on LED2 pin
-  PORTB |= (1 << LED2); // led2 goes high 
+  DDRB |= (1 << LED); // Set output on LED pin
+  PORTB |= (1 << LED); // led2 goes high 
   //setup led at default level
   if (pulses)
     PORTB &= ~(1 << PULSES); // led goes low 
@@ -73,5 +73,5 @@ ISR (TIMER1_COMPA_vect)
 
 ISR(INT0_vect)
 {
-  PORTB ^= _BV(LED2); //toggle LED2 pin 
+  PORTB ^= _BV(LED); //toggle LED pin 
 } 
