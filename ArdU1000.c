@@ -17,7 +17,8 @@
 int pulses = LOW; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
-int period = 16000; //duration between pulses (timer units) (1 ms)
+volatile int period = 16000; //duration between pulses (timer units) (1 ms)
+                             //this variable needs to be volatile because it is changed by an interrupt function
 
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
@@ -74,4 +75,5 @@ ISR (TIMER1_COMPA_vect)
 ISR(INT0_vect)
 {
   PORTB ^= _BV(LED); //toggle LED pin 
+  period *= 99/100;
 } 
