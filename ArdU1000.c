@@ -87,6 +87,8 @@ ISR (TIMER1_COMPA_vect)
     switchToDo -= 1;
     PORTB ^= _BV(PULSES); //toggle PULSES pin 
   }
+  else
+    DDRB &= ~(1 << DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
 }
 
 ISR(INT0_vect)
