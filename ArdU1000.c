@@ -37,7 +37,7 @@ int main(void)
   MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66)
   sei();//turn on interrupts
 
-  setPulse(40000);
+  setPulse(10000); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
   DDRB |= (1 << PULSES); // Set output on PULSES pin
@@ -61,12 +61,20 @@ int main(void)
   }
 }
 
+int N = 50; //number of pulses to fully accelerate. 50 semble correct
+int speedLow = 11000; //minimum speed (actually period)
+int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
+//int acceleration = (speedLow-speedFast)/N;
+
 ISR (TIMER1_COMPA_vect)
 {
    if (switchToDo % 2 == 0){
      i++;
-     if (i<500)
-       period = 6000 + 12 * (500-i);
+     //period: 
+     if (i<N) //acceleration
+       period = speedLow - (speedLow-speedFast)/N * i; 
+     if (switchToDo < N*2) //deceleration
+       period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
      OCR1A = pulseDuration;      // Duration of the pulses
     }
     else
@@ -80,7 +88,7 @@ ISR (TIMER1_COMPA_vect)
 ISR(INT0_vect)
 {
   PORTB ^= _BV(LED); //toggle LED pin 
-  period /= 100;
-  period *= 99;
-  setPulseDuration(period);
+  //period /= 100;
+  //period *= 99;
+  //setPulseDuration(period);
 } 
