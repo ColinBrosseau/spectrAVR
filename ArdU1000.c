@@ -8,8 +8,9 @@
 #include <avr/interrupt.h>
 
 #define PUSH PD2 // Define push-button pin on PD2 (Arduino Digital #2)
-#define PULSES PB4 // Define output pin on PB4 (Arduino Digital #12)
-#define LED PB5 // Define output pin on PB4 (Arduino Digital #13)
+#define DIRECTION PB3 // Spectrometer direction pin on PB4 (Arduino Digital #11)
+#define PULSES PB4 // Spectrometer pulses pin on PB4 (Arduino Digital #12)
+#define LED PB5 // Display led pin on PB4 (Arduino Digital #13, led)
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
@@ -40,14 +41,17 @@ int main(void)
   setPulse(10000); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
+  DDRB |= (1 << DIRECTION); // Set output on DIRECTION pin
   DDRB |= (1 << PULSES); // Set output on PULSES pin
   DDRB |= (1 << LED); // Set output on LED pin
-  PORTB |= (1 << LED); // led2 goes high 
+
+  PORTB &= ~(1 << DIRECTION); // DIRECTION goes high 
+  PORTB |= (1 << LED); // LED goes high 
   //setup led at default level
   if (pulses)
-    PORTB &= ~(1 << PULSES); // led goes low 
+    PORTB &= ~(1 << PULSES); // PULSE pin goes low 
   else 
-    PORTB |= (1 << PULSES); // led goes high 
+    PORTB |= (1 << PULSES); // PULSE pin goes high 
   
   OCR1A = 1; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
