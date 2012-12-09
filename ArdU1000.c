@@ -9,7 +9,6 @@
 #include <avr/pgmspace.h>  //for LCD
 #include "lcd.h" //for LCD
 
-
 #define PUSH PD2 // Define push-button pin on PD2 (Arduino Digital #2)
 #define DIRECTION PB3 // Spectrometer direction pin on PB4 (Arduino Digital #11)
 #define PULSES PB4 // Spectrometer pulses pin on PB4 (Arduino Digital #12)
@@ -43,7 +42,7 @@ switchToDo = 2 * steps;
 int main(void)
 {
   //for LCD
-  //  char buffer[7];
+  char buffer[16];
   //  int  num=134;
   //  unsigned char j;
 
@@ -80,14 +79,18 @@ int main(void)
   /* clear display and home cursor */
   lcd_clrscr();      
   /* put string to display (line 1) with linefeed */
-  lcd_puts("LCD Test Line 1\n");
-  /* cursor is now on second line, write second line */
-  lcd_puts("Patate !");
-  /* move cursor to position 8 on line 2 */
-  lcd_gotoxy(7,1);  
+  lcd_puts("Debut ");
+
+  sprintf(buffer,"%d",switchToDo+1); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_puts(buffer);
         
-  while (1);
+  while (1); //this loop doesn't seems to do anything (???)
   {
+    lcd_clrscr();      
+    sprintf(buffer,"%d",switchToDo+1);
+    lcd_puts(buffer);
+    for (int j=0; j<1; j++)
+      delay(1);
   }
 }
 
