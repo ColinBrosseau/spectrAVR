@@ -1,11 +1,14 @@
 // ATmega8 @ 16 MHz
-// setup timer1 for 0.5 s clock cycle
-// blink a led (pin 13 on Arduino)
 //
 //based on https://sites.google.com/site/qeewiki/books/avr-guide/timer-on-the-atmega8
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+
+#include <stdlib.h> //for LCD
+#include <avr/pgmspace.h>  //for LCD
+#include "lcd.h" //for LCD
+
 
 #define PUSH PD2 // Define push-button pin on PD2 (Arduino Digital #2)
 #define DIRECTION PB3 // Spectrometer direction pin on PB4 (Arduino Digital #11)
@@ -25,6 +28,13 @@ volatile unsigned long i = 0;
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
+//For LCD
+static const PROGMEM unsigned char copyRightChar[] =
+{
+	0x07, 0x08, 0x13, 0x14, 0x14, 0x13, 0x08, 0x07,
+	0x00, 0x10, 0x08, 0x08, 0x08, 0x08, 0x10, 0x00
+};
+
 void setPulse(unsigned long steps)
 {
 switchToDo = 2 * steps;
@@ -32,7 +42,11 @@ switchToDo = 2 * steps;
 
 int main(void)
 {
- 
+  //for LCD
+  //  char buffer[7];
+  //  int  num=134;
+  //  unsigned char j;
+
   //Turn on Push button pin interrupt on falling edge.
   GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
   MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66)
@@ -60,6 +74,18 @@ int main(void)
   
   sei(); // enable interrupts
 
+  //LCD
+  /* initialize display, cursor off */
+  lcd_init(LCD_DISP_ON);
+  /* clear display and home cursor */
+  lcd_clrscr();      
+  /* put string to display (line 1) with linefeed */
+  lcd_puts("LCD Test Line 1\n");
+  /* cursor is now on second line, write second line */
+  lcd_puts("Patate !");
+  /* move cursor to position 8 on line 2 */
+  lcd_gotoxy(7,1);  
+        
   while (1);
   {
   }
@@ -94,7 +120,4 @@ ISR (TIMER1_COMPA_vect)
 ISR(INT0_vect)
 {
   PORTB ^= _BV(LED); //toggle LED pin 
-  //period /= 100;
-  //period *= 99;
-  //setPulseDuration(period);
 } 
