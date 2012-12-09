@@ -8,3 +8,16 @@ Define pin PB3 as output for Direction of the spectrometer. Set it to low (incre
 -> It allows to control the spectrometer with the external controler (from company) with out the need of an additional switch (like before)!
 
 At present state, works on an Arduino NG (Atmega8 @ 16 MHz). The impultions pin is PB4 (Arduino pin 12).
+
+test_lcd.c
+print things on the LCD
+
+Arduino	     LCD
+
+D2	     RS
+D3	     R/W
+D4	     bit 4
+D5	     bit 5
+D6	     bit 6
+D7	     bit 7
+D8	     Enable (Clk)
