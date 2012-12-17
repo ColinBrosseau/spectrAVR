@@ -17,6 +17,8 @@
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
 
+#define PORT_PULSES DDRB //PORT of pulse pin
+
 int pulses = LOW; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
@@ -26,6 +28,7 @@ volatile unsigned long i = 0;
 
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
+#define OUT(port,pin)	(port |=  (1<<pin))
 
 //For LCD
 static const PROGMEM unsigned char copyRightChar[] =
@@ -55,7 +58,11 @@ int main(void)
   setPulseDuration(period);
 
   DDRB |= (1 << DIRECTION); // Set output on DIRECTION pin
-  DDRB |= (1 << PULSES); // Set output on PULSES pin
+
+  //DDRB |= (1 << PULSES); // Set output on PULSES pin
+  /* configure data pins as output */
+  OUT(PORT_PULSES,PULSES);
+
   DDRB |= (1 << LED); // Set output on LED pin
 
   PORTB &= ~(1 << DIRECTION); // DIRECTION goes high 
