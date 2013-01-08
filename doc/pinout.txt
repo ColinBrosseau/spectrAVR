@@ -34,10 +34,38 @@ XTAL2 PB7     -|10 19|- PB5 SCK (D13)
 	  XTAL1	-|12 29|- PC7 (TOSC2)
 	  XTAL2	-|13 28|- PC6 (TOSC1)
 (RXD)       PD0 -|14 27|- PC5 (TDI)
-(TXD) 	    PD1 -|15 26|- PC4 (TD0)
+(TXD) 	    PD1 -|15 26|- PC4 (TDO)
 (INT0) 	    PD2 -|16 25|- PC3 (TMS)
 (INT1) 	    PD3 -|17 24|- PC2 (TCK)
 (OC1B) 	    PD4 -|18 23|- PC1 (SDA)
 (OC1A) 	    PD5 -|19 22|- PC0 (SCL)
 (ICP1) 	    PD6 -|20 21|- PD7 (OC2)
                  -------
+ADC0 a ADC7 
+AIN0,AIN1 
+AREF 
+AVCC 
+GND 
+ICP1 
+INT0,INT1,INT2 
+MISO 
+MOSI 
+OC0 
+OC1A,OC1B 
+OC2 
+SCL 
+SDA 
+Reset 
+RXD 
+SCK 
+SS 
+T1 
+TCK 
+TDI 
+TDO 
+TMS 
+TOSC1,TOSC2 
+TXD 
+VCC 
+XCK 
+XTAL1,XTAL2 
