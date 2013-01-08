@@ -1,5 +1,4 @@
 (Arduino)	mega8
-
                -------
 Reset PC6     -|1  28|- PC5 ADC5
 (D0) RX PD0   -|2  27|- PC4 ADC4
@@ -16,3 +15,29 @@ XTAL2 PB7     -|10 19|- PB5 SCK (D13)
 (D7) PD7      -|13 16|- PB2 SS (D10)
 (D8) PB0      -|14 15|- PB1 (D9)
      	       -------
+
+	       
+	       
+	         mega16/32
+                 -------
+(XCK/T0)    PB0 -|1  40|- PA0 (ADC0)
+(T1) 	    PB1 -|2  39|- PA1 (ADC1)
+(INT2/AIN0) PB2	-|3  38|- PA2 (ADC2)
+(OC0/AIN1)  PB3 -|4  37|- PA3 (ADC3)
+(SS)        PB4 -|5  36|- PA4 (ADC4)
+(MOSI)      PB5 -|6  35|- PA5 (ADC5)
+(MISO) 	    PB6 -|7  34|- PA6 (ADC6)
+(SCK) 	    PB7 -|8  33|- PA7 (ADC7)
+          Reset -|9  32|- AREF
+            VCC -|10 31|- GND
+	    GND -|11 30|- AVCC
+	  XTAL1	-|12 29|- PC7 (TOSC2)
+	  XTAL2	-|13 28|- PC6 (TOSC1)
+(RXD)       PD0 -|14 27|- PC5 (TDI)
+(TXD) 	    PD1 -|15 26|- PC4 (TD0)
+(INT0) 	    PD2 -|16 25|- PC3 (TMS)
+(INT1) 	    PD3 -|17 24|- PC2 (TCK)
+(OC1B) 	    PD4 -|18 23|- PC1 (SDA)
+(OC1A) 	    PD5 -|19 22|- PC0 (SCL)
+(ICP1) 	    PD6 -|20 21|- PD7 (OC2)
+                 -------
