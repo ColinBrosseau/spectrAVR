@@ -19,7 +19,7 @@
 
 #define PORT_PULSES DDRB //PORT of pulse pin
 
-int pulses = LOW; //a pulse is when logic level goes to low
+int pulses = HIGH; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
@@ -108,17 +108,18 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 
 ISR (TIMER1_COMPA_vect)
 {
-   if (switchToDo % 2 == 0){
-     i++;
-     //period: 
-     if (i<N) //acceleration
-       period = speedLow - (speedLow-speedFast)/N * i; 
-     if (switchToDo < N*2) //deceleration
-       period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
-     OCR1A = pulseDuration;      // Duration of the pulses
-    }
-    else
-        OCR1A = period - pulseDuration;     // Duration of inter-pulses
+  if (switchToDo % 2 == 0){
+    i++;
+    //period: 
+    if (i<N) //acceleration
+      period = speedLow - (speedLow-speedFast)/N * i; 
+    if (switchToDo < N*2) //deceleration
+      period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
+    OCR1A = pulseDuration;      // Duration of the pulses
+  }
+  else
+    OCR1A = period - pulseDuration;     // Duration of inter-pulses
+
   if (switchToDo > 0) {
     switchToDo -= 1;
     PORTB ^= _BV(PULSES); //toggle PULSES pin 
