@@ -1,6 +1,9 @@
 // ATmega16 @ 12 MHz
 //
 //based on https://sites.google.com/site/qeewiki/books/avr-guide/timer-on-the-atmega8
+// 
+//Possible improvements:
+//    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -9,15 +12,15 @@
 #include <avr/pgmspace.h>  //for LCD
 #include "lcd.h" //for LCD
 
-#define PUSH PD2 // Define push-button pin on PD2 (Arduino Digital #2)
-#define DIRECTION PB3 // Spectrometer direction pin on PB4 (Arduino Digital #11)
-#define PULSES PB4 // Spectrometer pulses pin on PB4 (Arduino Digital #12)
-#define LED PB5 // Display led pin on PB4 (Arduino Digital #13, led)
+#define PUSH PD2 // Define push-button pin on PD2 (Int0)
+#define DIRECTION PD6 // Spectrometer direction pin on PD6
+#define PULSES PD5 // Spectrometer pulses pin on PD5 (for future PWM conversion)
+#define LED PA0 // Display led pin on PA0 
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
 
-#define PORT_PULSES DDRB //PORT of pulse pin
+#define PORT_PULSES DDRD //PORT of pulse pin
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
@@ -63,21 +66,21 @@ int main(void)
   setPulse(10000); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
-  DDRB |= (1 << DIRECTION); // Set output on DIRECTION pin
+  DDRD |= (1 << DIRECTION); // Set output on DIRECTION pin
 
   //DDRB |= (1 << PULSES); // Set output on PULSES pin
   /* configure data pins as output */
   OUT(PORT_PULSES,PULSES);
 
-  DDRB |= (1 << LED); // Set output on LED pin
+  DDRA |= (1 << LED); // Set output on LED pin
 
-  PORTB &= ~(1 << DIRECTION); // DIRECTION goes high 
-  PORTB |= (1 << LED); // LED goes high 
+  PORTD |= (1 << DIRECTION); // DIRECTION goes high 
+  PORTA |= (1 << LED); // LED goes high 
   //setup led at default level
   if (pulses)
-    PORTB &= ~(1 << PULSES); // PULSE pin goes low 
+    PORTD &= ~(1 << PULSES); // PULSE pin goes low 
   else 
-    PORTB |= (1 << PULSES); // PULSE pin goes high 
+    PORTD |= (1 << PULSES); // PULSE pin goes high 
   
   OCR1A = 1; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
@@ -128,13 +131,13 @@ ISR (TIMER1_COMPA_vect)
 
   if (switchToDo > 0) {
     switchToDo -= 1;
-    PORTB ^= _BV(PULSES); //toggle PULSES pin 
+    PORTD ^= _BV(PULSES); //toggle PULSES pin 
   }
   else
-    DDRB &= ~(1 << DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
+    DDRD &= ~(1 << DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
 }
 
 ISR(INT0_vect)
 {
-  PORTB ^= _BV(LED); //toggle LED pin 
+  PORTA ^= _BV(LED); //toggle LED pin 
 } 

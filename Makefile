@@ -21,6 +21,7 @@ FORMAT = ihex
 # Target file name (without extension).
 TARGET = ArdU1000
 
+AVRDUDE_PORT = /dev/ttyUSB1
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c lcd.c
@@ -169,7 +170,7 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_VERBOSE = -v -v
 
 #AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
-AVRDUDE_FLAGS = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -v -b 19200 -F
+AVRDUDE_FLAGS = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -v -b 19200 -F -P $(AVRDUDE_PORT)
 AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
