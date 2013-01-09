@@ -1,4 +1,4 @@
-// ATmega8 @ 16 MHz
+// ATmega16 @ 12 MHz
 //
 //based on https://sites.google.com/site/qeewiki/books/avr-guide/timer-on-the-atmega8
 
@@ -50,8 +50,14 @@ int main(void)
   //  unsigned char j;
 
   //Turn on Push button pin interrupt on falling edge.
+  #if defined(__AVR_ATmega8__) 
   GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
-  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66)
+  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) 
+  #else
+  GICR |= _BV(INT0);  //Enable INT0
+  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69) 
+  #endif
+
   sei();//turn on interrupts
 
   setPulse(10000); //@ 200 pulses/Angstrom

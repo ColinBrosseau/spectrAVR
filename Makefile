@@ -12,8 +12,8 @@
 # To rebuild project do "make clean" then "make all".
 
 # MCU name
-MCU = atmega8
-F_CPU=16000000UL
+MCU = atmega16
+F_CPU=12000000UL
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
