@@ -71,3 +71,24 @@ XCK : USART External Clock I/O
 XTAL1,XTAL2 : Input/Output to Inverting Oscillator Amplifier
 
 Expect TWI devices to be compatible to I²C devices except for some particularities like general broadcast or 10 bit addressing.
+
+
+LCD
+Hitachi HD44780
+
+1   VSS - Ground
+2   VCC - (+5V)
+3   VE - Contrast adjustment
+4   RS - Register Select
+5   RW - Read/Write
+6   EN - Clock (Enable)
+7   D0 - Data Bit 0
+8   D1 - Data Bit 1
+9   D2 - Data Bit 2
+10  D3 - Data Bit 3
+11  D4 - Data Bit 4
+12  D5 - Data Bit 5
+13  D6 - Data Bit 6
+14  D7 - Data Bit 7
+15  BLA - Backlight Anode (+)
+16  BLK - Backlight Cathode (-)
