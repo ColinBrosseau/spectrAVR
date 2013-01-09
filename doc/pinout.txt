@@ -41,31 +41,33 @@ XTAL2 PB7     -|10 19|- PB5 SCK (D13)
 (OC1A) 	    PD5 -|19 22|- PC0 (SCL)
 (ICP1) 	    PD6 -|20 21|- PD7 (OC2)
                  -------
-ADC0 a ADC7 
-AIN0,AIN1 
-AREF 
-AVCC 
-GND 
-ICP1 
-INT0,INT1,INT2 
-MISO 
-MOSI 
-OC0 
-OC1A,OC1B 
-OC2 
-SCL 
-SDA 
-Reset 
-RXD 
-SCK 
-SS 
-T1 
-TCK 
-TDI 
-TDO 
-TMS 
-TOSC1,TOSC2 
-TXD 
-VCC 
-XCK 
-XTAL1,XTAL2 
+ADC0 a ADC7 :  ADC Channel 0-7
+AIN0,AIN1 : Analog Comparator Positive I/P
+AREF : Analog Reference Pin for ADC
+AVCC : Voltage Supply = Vcc for ADC
+GND : 
+ICP1 : Timer/Counter1 Input Capture Pin
+INT0,INT1,INT2 : External Interrupt 0-2 Input
+MISO : In System Programmer (ISP), Serial Peripheral Interface (SPI)
+MOSI : In System Programmer (ISP), Serial Peripheral Interface (SPI)
+OC0 : Timer0 Output Compare Match Output
+OC1A,OC1B : PWM Channel Outputs
+OC2 : Timer/Counter2 Output Compare Match Output
+SCL : TWI Interface (I2C)
+SDA : TWI Interface (I2C)
+Reset : Active Low Reset
+RXD : USART Serial Communication Interface
+SCK : In System Programmer (ISP), Serial Peripheral Interface (SPI)
+SS : In System Programmer (ISP), Serial Peripheral Interface (SPI)
+T0, T1 : Timer0-1 External Counter Input
+TCK : JTAG Interface
+TDI : JTAG Interface
+TDO : JTAG Interface
+TMS : JTAG Interface
+TOSC1,TOSC2 : Timer Oscillator Pin 1-2
+TXD : USART Serial Communication Interface
+VCC : 
+XCK : USART External Clock I/O
+XTAL1,XTAL2 : Input/Output to Inverting Oscillator Amplifier
+
+Expect TWI devices to be compatible to I²C devices except for some particularities like general broadcast or 10 bit addressing.
