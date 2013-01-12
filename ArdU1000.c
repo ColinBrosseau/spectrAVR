@@ -22,7 +22,8 @@
 #define DUTY 10 //duty cycle (in %)
 
 #define PORT_PULSES DDRD //PORT of pulse pin
-#define PORT_DIRECTION DDRD //PORT of durection pin
+#define PORT_DIRECTION DDRD //PORT of direction pin
+#define PORT_LED DDRA //PORT of led pin
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
@@ -69,12 +70,9 @@ int main(void)
 
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
 
-  //DDRB |= (1 << PULSES); // Set output on PULSES pin
-  /* configure data pins as output */
-  OUT(PORT_PULSES,PULSES);
+  OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
 
-  DDRA |= (1 << LED); // Set output on LED pin
-
+  OUT(PORT_LED,LED); // Set output on LED pin
   PORTD |= (1 << DIRECTION); // DIRECTION goes high 
   PORTA |= (1 << LED); // LED goes high 
   //setup led at default level
