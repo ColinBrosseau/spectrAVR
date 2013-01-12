@@ -10,6 +10,7 @@
 
 #include <stdlib.h> //for LCD
 #include <avr/pgmspace.h>  //for LCD
+#include "def.h" //common definitions
 #include "lcd.h" //for LCD
 
 #define PUSH PD2 // Define push-button pin on PD2 (Int0)
@@ -31,7 +32,6 @@ volatile unsigned long i = 0;
 
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
-#define OUT(port,pin)	(port |=  (1<<pin))
 
 //For LCD
 static const PROGMEM unsigned char copyRightChar[] =
