@@ -22,6 +22,7 @@
 #define DUTY 10 //duty cycle (in %)
 
 #define PORT_PULSES DDRD //PORT of pulse pin
+#define PORT_DIRECTION DDRD //PORT of durection pin
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
@@ -66,7 +67,7 @@ int main(void)
   setPulse(10000); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
-  DDRD |= (1 << DIRECTION); // Set output on DIRECTION pin
+  OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
 
   //DDRB |= (1 << PULSES); // Set output on PULSES pin
   /* configure data pins as output */
