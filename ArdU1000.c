@@ -139,5 +139,5 @@ ISR (TIMER1_COMPA_vect)
 
 ISR(INT0_vect)
 {
-  PORTA ^= _BV(LED); //toggle LED pin 
+  TOGL(PORT_LED,LED); //toggle LED pin 
 } 
