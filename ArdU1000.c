@@ -21,9 +21,9 @@
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
 
-#define PORT_PULSES DDRD //PORT of pulse pin
-#define PORT_DIRECTION DDRD //PORT of direction pin
-#define PORT_LED DDRA //PORT of led pin
+#define PORT_PULSES PORTD //PORT of pulse pin
+#define PORT_DIRECTION PORTD //PORT of direction pin
+#define PORT_LED PORTA //PORT of led pin
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 unsigned long switchToDo = 0; //number of PULSES state change remaining
