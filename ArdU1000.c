@@ -7,7 +7,6 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-
 #include <stdlib.h> //for LCD
 #include <avr/pgmspace.h>  //for LCD
 #include "def.h" //common definitions
