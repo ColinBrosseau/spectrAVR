@@ -21,7 +21,7 @@ FORMAT = ihex
 # Target file name (without extension).
 TARGET = ArdU1000
 
-AVRDUDE_PORT = /dev/ttyUSB1
+AVRDUDE_PORT = /dev/ttyUSB0
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c lcd.c
