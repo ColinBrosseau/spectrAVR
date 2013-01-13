@@ -35,13 +35,6 @@ volatile unsigned long i = 0;
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
-//For LCD
-static const PROGMEM unsigned char copyRightChar[] =
-{
-	0x07, 0x08, 0x13, 0x14, 0x14, 0x13, 0x08, 0x07,
-	0x00, 0x10, 0x08, 0x08, 0x08, 0x08, 0x10, 0x00
-};
-
 void setPulse(unsigned long steps)
 {
 switchToDo = 2 * steps;
@@ -51,8 +44,6 @@ int main(void)
 {
   //for LCD
   char buffer[16];
-  //  int  num=134;
-  //  unsigned char j;
 
   //Turn on Push button pin interrupt on falling edge.
   #if defined(__AVR_ATmega8__) 
@@ -68,19 +59,22 @@ int main(void)
   setPulse(10000); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
+  //Direction pin
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
-
-  OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
-
-  OUT(PORT_LED,LED); // Set output on LED pin
   SET(PORT_DIRECTION,DIRECTION); // DIRECTION goes high 
-  SET(PORT_LED,LED); // LED goes high 
-  //setup led at default level
+
+  //Pulses pin
+  OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
+  //setup pulse pin at default level
   if (pulses)
     CLR(PORT_PULSES,PULSES); // PULSE pin goes low
   else 
     SET(PORT_PULSES,PULSES); // PULSE pin goes high 
   
+  //Led pin
+  OUT(PORT_LED,LED); // Set output on LED pin
+  SET(PORT_LED,LED); // LED goes high 
+
   OCR1A = 1; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match   
@@ -89,13 +83,9 @@ int main(void)
   sei(); // enable interrupts
 
   //LCD
-  /* initialize display, cursor off */
-  lcd_init(LCD_DISP_ON);
-  /* clear display and home cursor */
-  lcd_clrscr();      
-  /* put string to display (line 1) with linefeed */
-  lcd_puts("Debut ");
-
+  lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
+  lcd_clrscr(); /* clear display and home cursor */
+  lcd_puts("Debut "); /* put string to display (line 1) with linefeed */ 
   sprintf(buffer,"%d",switchToDo+1); //this line takes a lot of memory! //could be a good idea to remplace this code.
   lcd_puts(buffer);
         
@@ -112,7 +102,6 @@ int main(void)
 int N = 50; //number of pulses to fully accelerate. 50 semble correct
 int speedLow = 11000; //minimum speed (actually period)
 int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
-//int acceleration = (speedLow-speedFast)/N;
 
 ISR (TIMER1_COMPA_vect)
 {
@@ -134,7 +123,6 @@ ISR (TIMER1_COMPA_vect)
   }
   else
     IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
-
 }
 
 ISR(INT0_vect)
