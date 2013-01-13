@@ -73,13 +73,13 @@ int main(void)
   OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
 
   OUT(PORT_LED,LED); // Set output on LED pin
-  PORTD |= (1 << DIRECTION); // DIRECTION goes high 
-  PORTA |= (1 << LED); // LED goes high 
+  SET(PORT_DIRECTION,DIRECTION); // DIRECTION goes high 
+  SET(PORT_LED,LED); // LED goes high 
   //setup led at default level
   if (pulses)
-    PORTD &= ~(1 << PULSES); // PULSE pin goes low 
+    CLR(PORT_PULSES,PULSES); // PULSE pin goes low
   else 
-    PORTD |= (1 << PULSES); // PULSE pin goes high 
+    SET(PORT_PULSES,PULSES); // PULSE pin goes high 
   
   OCR1A = 1; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
