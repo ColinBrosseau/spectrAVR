@@ -9,8 +9,11 @@
 #include <avr/interrupt.h>
 #include <stdlib.h> //for LCD
 #include <avr/pgmspace.h>  //for LCD
+#include <util/delay.h>
 #include "def.h" //common definitions
 #include "lcd.h" //for LCD
+
+#define step2position 200 //convert number of steps in physical position (here Angstroms)
 
 #define PUSH PD2 // Define push-button pin on PD2 (Int0)
 #define DIRECTION PD6 // Spectrometer direction pin on PD6
@@ -25,6 +28,7 @@
 #define PORT_LED PORTA //PORT of led pin
 
 int pulses = HIGH; //a pulse is when logic level goes to low
+long Position = 0; //Position of the motor (steps)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
@@ -85,17 +89,64 @@ int main(void)
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("Debut "); /* put string to display (line 1) with linefeed */ 
-  sprintf(buffer,"%d",switchToDo+1); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
   lcd_puts(buffer);
         
-  while (1); //this loop doesn't seems to do anything (???)
-  {
-    lcd_clrscr();      
-    sprintf(buffer,"%d",switchToDo+1);
-    lcd_puts(buffer);
-    for (int j=0; j<1; j++)
-      delay(1);
-  }
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
+
+  _delay_ms(1000);
+  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+  lcd_gotoxy(0,1);
+  lcd_puts(buffer);
 }
 
 int N = 50; //number of pulses to fully accelerate. 50 semble correct
@@ -112,11 +163,14 @@ ISR (TIMER1_COMPA_vect)
     if (switchToDo < N*2) //deceleration
       period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
     OCR1A = pulseDuration;      // Duration of the pulses
-  }
+   }
   else
     OCR1A = period - pulseDuration;     // Duration of inter-pulses
 
   if (switchToDo > 0) {
+    if (switchToDo % 2 == 0){
+      Position += 1;
+    }
     switchToDo -= 1;
     TOGL(PORT_PULSES,PULSES); //toggle PULSES pin 
   }
