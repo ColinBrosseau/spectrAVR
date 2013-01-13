@@ -133,7 +133,8 @@ ISR (TIMER1_COMPA_vect)
     PORTD ^= _BV(PULSES); //toggle PULSES pin 
   }
   else
-    DDRD &= ~(1 << DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
+    IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
+
 }
 
 ISR(INT0_vect)
