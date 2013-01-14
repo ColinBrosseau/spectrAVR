@@ -33,7 +33,8 @@ unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
-volatile unsigned long i = 0;
+volatile unsigned long i = 0;//used for pulse generation
+int j;//general purpose
 
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
@@ -93,60 +94,12 @@ int main(void)
   lcd_gotoxy(0,1);
   lcd_puts(buffer);
         
+  for (j=0;j<12;j++){
   _delay_ms(1000);
   sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
   lcd_gotoxy(0,1);
   lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
+}
 }
 
 int N = 50; //number of pulses to fully accelerate. 50 semble correct
