@@ -28,14 +28,14 @@
 #define PORT_LED PORTA //PORT of led pin
 
 int pulses = HIGH; //a pulse is when logic level goes to low
-long Position = 0; //Position of the motor (steps)
+long Position = -400000; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
 volatile unsigned long i = 0;//used for pulse generation
-int j;//general purpose
+long j;//general purpose
 
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
@@ -61,7 +61,7 @@ int main(void)
 
   sei();//turn on interrupts
 
-  setPulse(10001); //@ 200 pulses/Angstrom
+  setPulse(1000001); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
   //Direction pin
@@ -90,9 +90,9 @@ int main(void)
   //LCD
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("Debut "); /* put string to display (line 1) with linefeed */ 
+  lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
         
-  for (j=0;j<120;j++){
+  for (j=0;j<100000;j++){
     _delay_ms(200);
     Position_A = (double)Position/step2position;
     dtostrf(Position_A,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
