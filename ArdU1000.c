@@ -90,16 +90,13 @@ int main(void)
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("Debut "); /* put string to display (line 1) with linefeed */ 
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
         
-  for (j=0;j<12;j++){
-  _delay_ms(1000);
-  sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-  lcd_gotoxy(0,1);
-  lcd_puts(buffer);
-}
+  for (j=0;j<120;j++){
+    _delay_ms(200);
+    sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    lcd_gotoxy(0,1);
+    lcd_puts(buffer);
+  }
 }
 
 int N = 50; //number of pulses to fully accelerate. 50 semble correct
