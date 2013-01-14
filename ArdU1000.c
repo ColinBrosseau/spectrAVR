@@ -29,6 +29,7 @@
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 long Position = 0; //Position of the motor (steps)
+double Position_A; //Position of the spetrometer (Angtroms)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
@@ -60,7 +61,7 @@ int main(void)
 
   sei();//turn on interrupts
 
-  setPulse(10000); //@ 200 pulses/Angstrom
+  setPulse(10001); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
   //Direction pin
@@ -93,9 +94,11 @@ int main(void)
         
   for (j=0;j<120;j++){
     _delay_ms(200);
-    sprintf(buffer,"%d",Position); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    lcd_gotoxy(0,1);
+    Position_A = (double)Position/step2position;
+    dtostrf(Position_A,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    lcd_gotoxy(0,1); 
     lcd_puts(buffer);
+    lcd_puts(" A");
   }
 }
 
