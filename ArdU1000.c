@@ -28,7 +28,7 @@
 #define PORT_LED PORTA //PORT of led pin
 
 int pulses = HIGH; //a pulse is when logic level goes to low
-long Position = -400000; //Position of the motor (steps)
+long Position = 0; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
@@ -61,7 +61,7 @@ int main(void)
 
   sei();//turn on interrupts
 
-  setPulse(1000001); //@ 200 pulses/Angstrom
+  setPulse(3141); //@ 200 pulses/Angstrom
   setPulseDuration(period);
 
   //Direction pin
@@ -134,4 +134,5 @@ ISR (TIMER1_COMPA_vect)
 ISR(INT0_vect)
 {
   TOGL(PORT_LED,LED); //toggle LED pin 
+  setPulse(200); //@ 200 pulses/Angstrom
 } 
