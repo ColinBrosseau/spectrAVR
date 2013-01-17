@@ -19,13 +19,12 @@ F_CPU=12000000UL
 FORMAT = ihex
 
 # Target file name (without extension).
-TARGET = ArdU1000
+TARGET = main
 
 AVRDUDE_PORT = /dev/ttyUSB0
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c lcd.c
-
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -35,8 +34,6 @@ SRC = $(TARGET).c lcd.c
 # it will preserve the spelling of the filenames, and gcc itself does
 # care about how the name is spelled on its command-line.
 ASRC = 
-
-
 
 # Optimization level, can be [0, 1, 2, 3, s]. 
 # 0 = turn off optimization. s = optimize for size.
@@ -52,7 +49,6 @@ DEBUG = dwarf-2
 #     Each directory must be seperated by a space.
 EXTRAINCDIRS = 
 
-
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
 # gnu89 - c89 plus GCC extensions
@@ -65,7 +61,6 @@ CDEFS =
 
 # Place -I options here
 CINCS =
-
 
 # Compiler flags.
 #  -g*:          generate debugging information
@@ -92,8 +87,6 @@ CFLAGS += -DF_CPU=$(F_CPU)
 #             and function names needs to be present in the assembler source
 #             files -- see avr-libc docs [FIXME: not yet described there]
 ASFLAGS = -Wa,-adhlns=$(<:.S=.lst),-gstabs 
-
-
 
 #Additional libraries.
 
@@ -124,7 +117,6 @@ MATH_LIB = -lm
 # 64 KB of external RAM, starting after internal RAM (ATmega128!),
 # only used for heap (malloc()).
 #EXTMEMOPTS = -Wl,--defsym=__heap_start=0x801100,--defsym=__heap_end=0x80ffff
-
 EXTMEMOPTS =
 
 # Linker flags.
@@ -134,9 +126,6 @@ EXTMEMOPTS =
 LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 LDFLAGS += $(EXTMEMOPTS)
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
-
-
-
 
 # Programming support using avrdude. Settings and variables.
 
@@ -153,7 +142,6 @@ AVRDUDE_PROGRAMMER = stk500v1
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
-
 
 # Uncomment the following if you want avrdude's erase cycle counter.
 # Note that this counter needs to be initialized first using -Yn,
@@ -175,8 +163,6 @@ AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
 AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
 AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
 
-
-
 # ---------------------------------------------------------------------------
 
 # Define directories, if needed.
@@ -185,7 +171,6 @@ DIRAVRBIN = $(DIRAVR)/bin
 DIRAVRUTILS = $(DIRAVR)/utils/bin
 DIRINC = .
 DIRLIB = $(DIRAVR)/avr/lib
-
 
 # Define programs and commands.
 SHELL = sh
@@ -197,9 +182,6 @@ NM = avr-nm
 AVRDUDE = avrdude
 REMOVE = rm -f
 COPY = cp
-
-
-
 
 # Define Messages
 # English
@@ -219,28 +201,19 @@ MSG_COMPILING = Compiling:
 MSG_ASSEMBLING = Assembling:
 MSG_CLEANING = Cleaning project:
 
-
-
-
 # Define all object files.
 OBJ = $(SRC:.c=.o) $(ASRC:.S=.o) 
 
 # Define all listing files.
 LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
 
-
 # Compiler flags to generate dependency files.
 GENDEPFLAGS = -Wp,-M,-MP,-MT,$(*F).o,-MF,.dep/$(@F).d
-
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
 ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
-
-
-
-
 
 # Default target.
 all: begin gccversion sizebefore build sizeafter finished end
@@ -252,8 +225,6 @@ hex: $(TARGET).hex
 eep: $(TARGET).eep
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
-
-
 
 # Eye candy.
 # AVR Studio 3.x does not check make's exit code but relies on
@@ -269,7 +240,6 @@ end:
 	@echo $(MSG_END)
 	@echo
 
-
 # Display size of file.
 HEXSIZE = $(SIZE) --target=$(FORMAT) $(TARGET).hex
 ELFSIZE = $(SIZE) -A $(TARGET).elf
@@ -279,20 +249,13 @@ sizebefore:
 sizeafter:
 	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); echo; fi
 
-
-
 # Display compiler version information.
 gccversion : 
 	@$(CC) --version
 
-
-
 # Program the device.  
 program: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
-
-
-
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \
@@ -300,7 +263,6 @@ COFFCONVERT=$(OBJCOPY) --debugging \
 --change-section-address .bss-0x800000 \
 --change-section-address .noinit-0x800000 \
 --change-section-address .eeprom-0x810000 
-
 
 coff: $(TARGET).elf
 	@echo
@@ -312,8 +274,6 @@ extcoff: $(TARGET).elf
 	@echo
 	@echo $(MSG_EXTENDED_COFF) $(TARGET).cof
 	$(COFFCONVERT) -O coff-ext-avr $< $(TARGET).cof
-
-
 
 # Create final output files (.hex, .eep) from ELF output file.
 %.hex: %.elf
@@ -349,13 +309,11 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
 
-
 # Compile: create object files from C source files.
 %.o : %.c
 	@echo
 	@echo $(MSG_COMPILING) $<
 	$(CC) -c $(ALL_CFLAGS) $< -o $@ 
-
 
 # Compile: create assembler files from C source files.
 %.s : %.c
@@ -367,8 +325,6 @@ extcoff: $(TARGET).elf
 	@echo
 	@echo $(MSG_ASSEMBLING) $<
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
-
-
 
 # Target: clean project.
 clean: begin clean_list finished end
@@ -393,14 +349,10 @@ clean_list :
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) .dep/*
 
-
-
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
-
 
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
 build elf hex eep lss sym coff extcoff \
 clean clean_list program
-
