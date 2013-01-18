@@ -53,7 +53,7 @@ int main(void) {
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
 
   //for LCD
-  char buffer[16];
+  char bufferLCD[16];
 
   //Turn on Push button pin interrupt on falling edge.
   #if defined(__AVR_ATmega8__) 
@@ -102,9 +102,9 @@ int main(void) {
   for (j=0;j<100000;j++) {
     _delay_ms(200);
     Position_A = (double)Position/step2position;
-    dtostrf(Position_A,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    dtostrf(Position_A,9,3,bufferLCD); //this line takes a lot of memory! //could be a good idea to remplace this code.
     lcd_gotoxy(0,1); 
-    lcd_puts(buffer);
+    lcd_puts(bufferLCD);
     lcd_puts(" A");
   }
 }
