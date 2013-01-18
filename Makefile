@@ -24,7 +24,7 @@ TARGET = main
 AVRDUDE_PORT = /dev/ttyUSB0
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c lcd.c
+SRC = $(TARGET).c lcd.c uartParser.c uart.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s

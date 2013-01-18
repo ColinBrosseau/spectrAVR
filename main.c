@@ -12,6 +12,7 @@
 #include <util/delay.h>
 #include "def.h" //common definitions
 #include "lcd.h" //for LCD
+#include "uartParser.h"
 
 #define step2position 200 //convert number of steps in physical position (here Angstroms)
 
@@ -90,6 +91,8 @@ int main(void) {
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
         
+  process_uart();
+
   for (j=0;j<100000;j++) {
     _delay_ms(200);
     Position_A = (double)Position/step2position;
