@@ -7,6 +7,7 @@ uses Peter Fleury's uart library http://homepage.hispeed.ch/peterfleury/avr-soft
 for easier microcontroler change.
 *************************************************************************/
 #define bufferLength 20
+#define step2position 200 //convert number of steps in physical position (here Angstroms)
 
 #include <stdlib.h>
 #include <avr/io.h>
@@ -27,9 +28,10 @@ unsigned char data_count = 0;
 unsigned char data_in[bufferLength];
 char command_in[bufferLength];
 
+extern double Position_A; //variable from main program
 extern long Position; //variable from main program
 
-long parse_assignment (char input[bufferLength]) {
+double parse_assignment (char input[bufferLength]) {
   char *pch;
   char cmdValue[bufferLength];
   // Find the position the equals sign is
@@ -40,7 +42,7 @@ long parse_assignment (char input[bufferLength]) {
   strcpy(cmdValue, pch+1);
   // Now turn this value into an integer and
   // return it to the caller.
-  return atol(cmdValue);
+  return atof(cmdValue);
 }
 
 void copy_command () {
@@ -52,11 +54,13 @@ void copy_command () {
 
 // Process commands get from uart
 void process_command() {
-  if(strcasestr(command_in,"Position") != NULL){
+  if(strcasestr(command_in,"A") != NULL){
     if(strcasestr(command_in,"?") != NULL)
-      print_value("Position", Position);
-    else
-      Position = parse_assignment(command_in);
+      print_value("A", Position_A);
+    else {
+      Position_A = parse_assignment(command_in);
+      Position = Position_A*step2position;
+    }
   }
 } 
 
