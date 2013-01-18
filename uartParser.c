@@ -30,6 +30,10 @@ char command_in[bufferLength];
 
 extern double Position_A; //variable from main program
 extern long Position; //variable from main program
+extern unsigned long switchToDo; //variable from main program
+
+long Position2go;
+double Position2go_A;
 
 double parse_assignment (char input[bufferLength]) {
   char *pch;
@@ -62,11 +66,37 @@ void process_command() {
       Position = Position_A*step2position;
     }
   }
+  else if(strcasestr(command_in,"GOTO") != NULL){
+    char buffer[16];
+
+    Position2go_A = parse_assignment(command_in);
+
+    dtostrf(Position2go_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    uart_puts(buffer);
+    uart_puts("\r\n");
+    dtostrf(Position_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    uart_puts(buffer);
+    uart_puts("\r\n");
+ 
+    Position2go = Position2go_A*step2position;
+
+    ltoa(Position,buffer,10); 
+    uart_puts(buffer);
+    uart_puts("\r\n");
+
+    ltoa(Position2go,buffer,10); 
+    uart_puts(buffer);
+    uart_puts("\r\n");
+
+    switchToDo = (Position2go - Position)*2;
+
+  }
 } 
 
-void print_value (char *id, int value) {
+void print_value (char *id, double value) {
   char buffer[bufferLength];
-  itoa(value, buffer, 10);
+  dtostrf(value,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+//ftoa(value, buffer, 10);
   uart_puts(id);
   uart_putc('=');
   uart_puts(buffer);
