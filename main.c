@@ -59,8 +59,8 @@ int main(void) {
 
   sei();//turn on interrupts
 
-  setPulse(3141); //@ 200 pulses/Angstrom
   setPulseDuration(period);
+  setPulse(3); //@ 200 pulses/Angstrom
 
   //Direction pin
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
@@ -78,7 +78,7 @@ int main(void) {
   OUT(PORT_LED,LED); // Set output on LED pin
   SET(PORT_LED,LED); // LED goes high 
 
-  OCR1A = 1; 
+  OCR1A = 50000; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match   
   TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer    
