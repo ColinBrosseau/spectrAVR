@@ -6,6 +6,7 @@ based on www.adnbr.co.uk/articles/parsing-simple-usart-commands
 uses Peter Fleury's uart library http://homepage.hispeed.ch/peterfleury/avr-software.html#libs
 for easier microcontroler change.
 *************************************************************************/
+#define bufferLength 20
 
 #include <stdlib.h>
 #include <avr/io.h>
@@ -23,14 +24,14 @@ for easier microcontroler change.
 #define RETURN_NEWLINE "\r\n"
 
 unsigned char data_count = 0;
-unsigned char data_in[8];
-char command_in[8];
-int variable_A = 23; //user modifiable variable
-int variable_goto = 12; //user modifiable variable
+unsigned char data_in[bufferLength];
+char command_in[bufferLength];
 
-int parse_assignment (char input[16]) {
+extern long Position; //variable from main program
+
+int parse_assignment (char input[bufferLength]) {
   char *pch;
-  char cmdValue[16];
+  char cmdValue[bufferLength];
   // Find the position the equals sign is
   // in the string, keep a pointer to it
   pch = strchr(input, '=');
@@ -39,33 +40,28 @@ int parse_assignment (char input[16]) {
   strcpy(cmdValue, pch+1);
   // Now turn this value into an integer and
   // return it to the caller.
-  return atoi(cmdValue);
+  return atol(cmdValue);
 }
 
 void copy_command () {
   // Copy the contents of data_in into command_in
-  memcpy(command_in, data_in, 8);
+  memcpy(command_in, data_in, bufferLength);
   // Now clear data_in, the UART can reuse it now
-  memset(data_in, 0, 8);
+  memset(data_in, 0, bufferLength);
 }
 
+// Process commands get from uart
 void process_command() {
-  if(strcasestr(command_in,"GOTO") != NULL){
+  if(strcasestr(command_in,"Position") != NULL){
     if(strcasestr(command_in,"?") != NULL)
-      print_value("goto", variable_goto);
+      print_value("Position", Position);
     else
-      variable_goto = parse_assignment(command_in);
-  }
-  else if(strcasestr(command_in,"A") != NULL){
-    if(strcasestr(command_in,"?") != NULL)
-      print_value("A", variable_A);
-    else
-      variable_A = parse_assignment(command_in);
+      Position = parse_assignment(command_in);
   }
 } 
 
 void print_value (char *id, int value) {
-  char buffer[8];
+  char buffer[bufferLength];
   itoa(value, buffer, 10);
   uart_puts(id);
   uart_putc('=');

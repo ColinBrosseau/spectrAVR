@@ -51,6 +51,8 @@ void setPulse(unsigned long steps) {
 int main(void) {
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
+  uart_puts("-----"); uart_puts("\r\n");
+  uart_puts("AVR U1000 Version 1.9"); uart_puts("\r\n");
 
   //for LCD
   char bufferLCD[16];
