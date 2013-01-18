@@ -7,8 +7,6 @@ uses Peter Fleury's uart library http://homepage.hispeed.ch/peterfleury/avr-soft
 for easier microcontroler change.
 *************************************************************************/
 
-#define UART_BAUD_RATE 57600 //uart speed
-
 #include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>

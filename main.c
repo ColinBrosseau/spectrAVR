@@ -5,6 +5,8 @@
 //Possible improvements:
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
+#define UART_BAUD_RATE 57600 //uart speed
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h> //for LCD
@@ -13,6 +15,7 @@
 #include "def.h" //common definitions
 #include "lcd.h" //for LCD
 #include "uartParser.h"
+#include "uart.h"
 
 #define step2position 200 //convert number of steps in physical position (here Angstroms)
 
@@ -46,6 +49,9 @@ void setPulse(unsigned long steps) {
 }
 
 int main(void) {
+  //  Initialize UART library
+  uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
+
   //for LCD
   char buffer[16];
 
