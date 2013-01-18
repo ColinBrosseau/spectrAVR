@@ -40,13 +40,11 @@ long j;//general purpose
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
 #define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
-void setPulse(unsigned long steps)
-{
-switchToDo = 2 * steps;
+void setPulse(unsigned long steps) {
+  switchToDo = 2 * steps;
 }
 
-int main(void)
-{
+int main(void) {
   //for LCD
   char buffer[16];
 
@@ -92,7 +90,7 @@ int main(void)
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
         
-  for (j=0;j<100000;j++){
+  for (j=0;j<100000;j++) {
     _delay_ms(200);
     Position_A = (double)Position/step2position;
     dtostrf(Position_A,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
@@ -106,9 +104,8 @@ int N = 50; //number of pulses to fully accelerate. 50 semble correct
 int speedLow = 11000; //minimum speed (actually period)
 int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
 
-ISR (TIMER1_COMPA_vect)
-{
-  if (switchToDo % 2 == 0){
+ISR (TIMER1_COMPA_vect) {
+  if (switchToDo % 2 == 0) {
     i++;
     //period: 
     if (i<N) //acceleration
@@ -121,7 +118,7 @@ ISR (TIMER1_COMPA_vect)
     OCR1A = period - pulseDuration;     // Duration of inter-pulses
 
   if (switchToDo > 0) {
-    if (switchToDo % 2 == 0){
+    if (switchToDo % 2 == 0) {
       Position += 1;
     }
     switchToDo -= 1;
@@ -131,8 +128,7 @@ ISR (TIMER1_COMPA_vect)
     IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
 }
 
-ISR(INT0_vect)
-{
+ISR(INT0_vect) {
   TOGL(PORT_LED,LED); //toggle LED pin 
   setPulse(200); //@ 200 pulses/Angstrom
 } 
