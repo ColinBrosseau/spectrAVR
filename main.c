@@ -67,7 +67,7 @@ int main(void) {
   sei();//turn on interrupts
 
   setPulseDuration(period);
-  setPulse(3); //@ 200 pulses/Angstrom
+  setPulse(4); //@ 200 pulses/Angstrom
 
   //Direction pin
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
@@ -97,15 +97,16 @@ int main(void) {
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
         
-  process_uart();
-
-  for (j=0;j<100000;j++) {
+  while(1) {
     _delay_ms(200);
+    // LCD display
     Position_A = (double)Position/step2position;
     dtostrf(Position_A,9,3,bufferLCD); //this line takes a lot of memory! //could be a good idea to remplace this code.
     lcd_gotoxy(0,1); 
     lcd_puts(bufferLCD);
     lcd_puts(" A");
+    // process commands from uart
+    process_uart();
   }
 }
 
