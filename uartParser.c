@@ -29,7 +29,7 @@ char command_in[bufferLength];
 
 extern long Position; //variable from main program
 
-int parse_assignment (char input[bufferLength]) {
+long parse_assignment (char input[bufferLength]) {
   char *pch;
   char cmdValue[bufferLength];
   // Find the position the equals sign is
