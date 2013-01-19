@@ -7,6 +7,12 @@
 
 #define UART_BAUD_RATE 57600 //uart speed
 
+#define step2position 200 //convert number of steps in physical position (here Angstroms)
+//pulses speed and acceleration
+int N = 50; //number of pulses to fully accelerate. 50 semble correct
+int speedLow = 11000; //minimum speed (actually period)
+int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h> //for LCD
@@ -16,8 +22,6 @@
 #include "lcd.h" //for LCD
 #include "uartParser.h"
 #include "uart.h"
-
-#define step2position 200 //convert number of steps in physical position (here Angstroms)
 
 #define PUSH PD2 // Define push-button pin on PD2 (Int0)
 #define DIRECTION PD6 // Spectrometer direction pin on PD6
@@ -65,7 +69,6 @@ int main(void) {
   GICR |= _BV(INT0);  //Enable INT0
   MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69) 
   #endif
-
   sei();//turn on interrupts
 
   pulseDuration = period*DUTY/100;   // set pulseDuration
@@ -87,11 +90,12 @@ int main(void) {
   OUT(PORT_LED,LED); // Set output on LED pin
   SET(PORT_LED,LED); // LED goes high 
 
+  //set timer 1
+  //for pulse generation
   OCR1A = 50000; 
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match   
   TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer    
-  
   sei(); // enable interrupts
 
   //LCD
@@ -112,10 +116,8 @@ int main(void) {
   }
 }
 
-int N = 50; //number of pulses to fully accelerate. 50 semble correct
-int speedLow = 11000; //minimum speed (actually period)
-int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
 
+//Pulses generation
 ISR (TIMER1_COMPA_vect) {
   if (switchToDo % 2 == 0) {
     i++;
