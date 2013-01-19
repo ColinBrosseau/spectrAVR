@@ -42,7 +42,7 @@ volatile unsigned long i = 0;//used for pulse generation
 long j;//general purpose
 
 //#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
-#define setPulseDuration(x) pulseDuration = period*DUTY/100;
+//#define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
 void setPulse(unsigned long steps) {
   switchToDo = 2 * steps;
@@ -68,8 +68,8 @@ int main(void) {
 
   sei();//turn on interrupts
 
-  setPulseDuration(period);
-  setPulse(4); //@ 200 pulses/Angstrom
+  pulseDuration = period*DUTY/100;   // set pulseDuration
+  //setPulse(4); //@ 200 pulses/Angstrom
 
   //Direction pin
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
