@@ -221,11 +221,12 @@ ISR (TIMER1_COMPA_vect) {
   else {
     CLR(PORT_PULSES,PULSES); // PULSES pin to LOW
     IN(PORT_PULSES,PULSES); // PULSES pin to input (high impedance). It allow to control it for the company's controler.
-    IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
+    //IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
   }
 }
 
 ISR(INT0_vect) {
+  //if (READ(PORT_DIRECTION,DIRECTION) == HIGH) {
   if (avance == HIGH) {
     Position += 1;
   }
