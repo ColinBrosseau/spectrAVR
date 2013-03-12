@@ -72,23 +72,28 @@ void process_command() {
     Position2go_A = parse_assignment(command_in);
 
     dtostrf(Position2go_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    uart_puts("to go:  ");
     uart_puts(buffer);
     uart_puts("\r\n");
+
     dtostrf(Position_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    uart_puts("actuel: ");
     uart_puts(buffer);
     uart_puts("\r\n");
  
     Position2go = Position2go_A*step2position;
 
-    ltoa(Position,buffer,10); 
-    uart_puts(buffer);
-    uart_puts("\r\n");
-
     ltoa(Position2go,buffer,10); 
+    uart_puts("step to go  ");
     uart_puts(buffer);
     uart_puts("\r\n");
 
-    switchToDo = (Position2go - Position)*2;
+    ltoa(Position,buffer,10); 
+    uart_puts("step actuel ");
+    uart_puts(buffer);
+    uart_puts("\r\n");
+
+    switchToDo = (Position2go - Position);
 
   }
 } 
