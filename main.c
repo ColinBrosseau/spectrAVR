@@ -138,13 +138,6 @@ ISR (TIMER1_COMPA_vect) {
     }
     TOGL(PORT_PULSES,PULSES); //toggle PULSES pin    
   }
-  /* if (switchToDo > 0) { */
-  /*   if (READ(PORT_PULSES,PULSES) == LOW) { */
-  /*     Position += 1; */
-  /*     switchToDo -= 1; */
-  /*   } */
-  /*   TOGL(PORT_PULSES,PULSES); //toggle PULSES pin  */
-  /* } */
   else {
     CLR(PORT_PULSES,PULSES); //toggle PULSES pin 
     IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
