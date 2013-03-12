@@ -139,7 +139,7 @@ int main(void) {
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("AVR U1000 Version 1.9"); uart_puts("\r\n");
+  uart_puts("AVR U1000 Version 1.95"); uart_puts("\r\n");
 
   //for LCD
   char bufferLCD[16];
@@ -223,7 +223,7 @@ ISR (TIMER1_COMPA_vect) {
   }
   else {
     CLR(PORT_PULSES,PULSES); // PULSES pin to LOW
-    IN(PORT_PULSES,PULSES); // PULSES pin to input (high impedance). It allow to control it for the company's controler.
+    //IN(PORT_PULSES,PULSES); // PULSES pin to input (high impedance). It allow to control it for the company's controler.
     //IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
   }
 }
