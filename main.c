@@ -45,12 +45,12 @@ volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 
 volatile unsigned long i = 0;//used for pulse generation
 long j;//general purpose
 
-//#define setPulse(x) switchToDo = x*2 //set number of pulses to send 
+#define setPulse(x) switchToDo = x //set number of pulses to send 
 //#define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
-void setPulse(unsigned long steps) {
-  switchToDo = steps;
-}
+/* void setPulse(unsigned long steps) { */
+/*   switchToDo = steps; */
+/* } */
 
 int main(void) {
   //  Initialize UART library
