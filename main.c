@@ -121,28 +121,34 @@ int main(void) {
 
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
-  if (READ(PORT_PULSES,PULSES) == LOW) {
-    i++;
-    //period: 
-    if (i<N) //acceleration
-      period = speedLow - (speedLow-speedFast)/N * i; 
-    if (switchToDo < N*2) //deceleration
-      period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
-    OCR1A = pulseDuration;      // Duration of the pulses
-   }
-  else
-    OCR1A = period - pulseDuration;     // Duration of inter-pulses
-
   if (switchToDo > 0) {
     if (READ(PORT_PULSES,PULSES) == LOW) {
+      i++;
+      //period: 
+      if (i<N) //acceleration
+	period = speedLow - (speedLow-speedFast)/N * i; 
+      if (switchToDo < N*2) //deceleration
+	period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
+      OCR1A = pulseDuration;      // Duration of the pulses
       Position += 1;
       switchToDo -= 1;
     }
-    TOGL(PORT_PULSES,PULSES); //toggle PULSES pin 
+    else {
+      OCR1A = period - pulseDuration;     // Duration of inter-pulses
+    }
+    TOGL(PORT_PULSES,PULSES); //toggle PULSES pin    
   }
-  else
+  /* if (switchToDo > 0) { */
+  /*   if (READ(PORT_PULSES,PULSES) == LOW) { */
+  /*     Position += 1; */
+  /*     switchToDo -= 1; */
+  /*   } */
+  /*   TOGL(PORT_PULSES,PULSES); //toggle PULSES pin  */
+  /* } */
+  else {
     CLR(PORT_PULSES,PULSES); //toggle PULSES pin 
     IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
+  }
 }
 
 ISR(INT0_vect) {
