@@ -64,6 +64,8 @@ char command_in[bufferLength];
 /*   switchToDo = steps; */
 /* } */
 
+void backlash(void);
+
 double parse_assignment (char input[bufferLength]) {
   char *pch;
   char cmdValue[bufferLength];
@@ -114,6 +116,8 @@ void process_command() {
     uart_puts("step actuel ");
     uart_puts(buffer);
     uart_puts("\r\n");
+
+    backlash;
 
     if (Position2go > Position) {
       switchToDo = Position2go - Position;
@@ -200,7 +204,6 @@ int main(void) {
   }
 }
 
-
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
   if (switchToDo > 0) {
@@ -235,3 +238,14 @@ ISR(INT0_vect) {
   }
   switchToDo -= 1; 
 } 
+
+void backlash(void) {
+  //revient sur ses pas
+  _delay_ms(100);
+  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin    
+  setPulse(5);
+  //retourne a sa position initiale
+  _delay_ms(100);
+  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin    
+  setPulse(5);
+}
