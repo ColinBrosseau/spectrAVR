@@ -22,6 +22,7 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #include "lcd.h" //for LCD
 #include "uartParser.h"
 #include "uart.h"
+#include <string.h>
 
 #define PUSH PD2 // Define push-button pin on PD2 (Int0)
 #define DIRECTION PD6 // Spectrometer direction pin on PD6
@@ -31,12 +32,15 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
 
+#define PORT_PUSH PORTD //PORT of push pin
 #define PORT_PULSES PORTD //PORT of pulse pin
 #define PORT_DIRECTION PORTD //PORT of direction pin
 #define PORT_LED PORTA //PORT of led pin
 
 #define AVANCE SET(PORT_DIRECTION,DIRECTION);
 #define RECULE CLR(PORT_DIRECTION,DIRECTION);
+typedef unsigned char bool; 
+bool avance = HIGH;
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 long Position = 0; //Position of the motor (steps)
@@ -114,10 +118,12 @@ void process_command() {
     if (Position2go > Position) {
       switchToDo = Position2go - Position;
       AVANCE;
+      avance = HIGH;
     }
     else {
       switchToDo = - Position2go + Position;
       RECULE;       
+      avance = LOW;
     }
   }
   memset(command_in, 0, bufferLength); //erase the command
@@ -133,6 +139,8 @@ int main(void) {
 
   //for LCD
   char bufferLCD[16];
+
+  IN(PORT_PUSH,PUSH); // Set push pin in
 
   //Turn on Push button pin interrupt on falling edge.
   #if defined(__AVR_ATmega8__) 
@@ -204,8 +212,6 @@ ISR (TIMER1_COMPA_vect) {
       if (switchToDo < N*2) //deceleration
 	period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
       OCR1A = pulseDuration;      // Duration of the pulses
-      Position += 1;
-      switchToDo -= 1;
     }
     else {
       OCR1A = period - pulseDuration;     // Duration of inter-pulses
@@ -213,13 +219,18 @@ ISR (TIMER1_COMPA_vect) {
     TOGL(PORT_PULSES,PULSES); //toggle PULSES pin    
   }
   else {
-    CLR(PORT_PULSES,PULSES); //toggle PULSES pin 
+    CLR(PORT_PULSES,PULSES); // PULSES pin to LOW
     IN(PORT_PULSES,PULSES); // PULSES pin to input (high impedance). It allow to control it for the company's controler.
     IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
   }
 }
 
 ISR(INT0_vect) {
-  TOGL(PORT_LED,LED); //toggle LED pin 
-  setPulse(200); //@ 200 pulses/Angstrom
+  if (avance == HIGH) {
+    Position += 1;
+  }
+  else {
+    Position -= 1;    
+  }
+  switchToDo -= 1; 
 } 
