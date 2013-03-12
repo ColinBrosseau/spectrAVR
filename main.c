@@ -49,7 +49,7 @@ long j;//general purpose
 //#define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
 void setPulse(unsigned long steps) {
-  switchToDo = 2 * steps;
+  switchToDo = steps;
 }
 
 int main(void) {
@@ -103,7 +103,7 @@ int main(void) {
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
         
-  setPulse(5000);
+  setPulse(8);
 
   while(1) {
     _delay_ms(200);
@@ -121,7 +121,7 @@ int main(void) {
 
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
-  if (switchToDo % 2 == 0) {
+  if (READ(PORT_PULSES,PULSES) == LOW) {
     i++;
     //period: 
     if (i<N) //acceleration
@@ -134,13 +134,14 @@ ISR (TIMER1_COMPA_vect) {
     OCR1A = period - pulseDuration;     // Duration of inter-pulses
 
   if (switchToDo > 0) {
-    if (switchToDo % 2 == 0) {
+    if (READ(PORT_PULSES,PULSES) == LOW) {
       Position += 1;
+      switchToDo -= 1;
     }
-    switchToDo -= 1;
     TOGL(PORT_PULSES,PULSES); //toggle PULSES pin 
   }
   else
+    CLR(PORT_PULSES,PULSES); //toggle PULSES pin 
     IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
 }
 
