@@ -35,15 +35,23 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #define PORT_DIRECTION PORTD //PORT of direction pin
 #define PORT_LED PORTA //PORT of led pin
 
+#define AVANCE SET(PORT_DIRECTION,DIRECTION);
+#define RECULE CLR(PORT_DIRECTION,DIRECTION);
+
 int pulses = HIGH; //a pulse is when logic level goes to low
 long Position = 0; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
+long Position2go;
+double Position2go_A;
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
 volatile unsigned long i = 0;//used for pulse generation
 long j;//general purpose
+
+#define bufferLength 20
+char command_in[bufferLength];
 
 #define setPulse(x) switchToDo = x //set number of pulses to send 
 //#define setPulseDuration(x) pulseDuration = period*DUTY/100;
@@ -52,7 +60,72 @@ long j;//general purpose
 /*   switchToDo = steps; */
 /* } */
 
+double parse_assignment (char input[bufferLength]) {
+  char *pch;
+  char cmdValue[bufferLength];
+  // Find the position the equals sign is
+  // in the string, keep a pointer to it
+  pch = strchr(input, '=');
+  // Copy everything after that point into
+  // the buffer variable
+  strcpy(cmdValue, pch+1);
+  // Now turn this value into an integer and
+  // return it to the caller.
+  return atof(cmdValue);
+}
+
+// Process commands get from uart
+void process_command() {
+  if(strcasestr(command_in,"A") != NULL){
+    if(strcasestr(command_in,"?") != NULL)
+      print_value("A", Position_A);
+    else {
+      Position_A = parse_assignment(command_in);
+      Position = Position_A*step2position;
+    }
+  }
+  else if(strcasestr(command_in,"GOTO") != NULL){
+    char buffer[16];
+
+    Position2go_A = parse_assignment(command_in);
+
+    dtostrf(Position2go_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    uart_puts("to go:  ");
+    uart_puts(buffer);
+    uart_puts("\r\n");
+
+    dtostrf(Position_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    uart_puts("actuel: ");
+    uart_puts(buffer);
+    uart_puts("\r\n");
+ 
+    Position2go = Position2go_A*step2position;
+
+    ltoa(Position2go,buffer,10); 
+    uart_puts("step to go  ");
+    uart_puts(buffer);
+    uart_puts("\r\n");
+
+    ltoa(Position,buffer,10); 
+    uart_puts("step actuel ");
+    uart_puts(buffer);
+    uart_puts("\r\n");
+
+    if (Position2go > Position) {
+      switchToDo = Position2go - Position;
+      AVANCE;
+    }
+    else {
+      switchToDo = - Position2go + Position;
+      RECULE;       
+    }
+  }
+  memset(command_in, 0, bufferLength); //erase the command
+} 
+
 int main(void) {
+  memset(command_in, 0, bufferLength);
+
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   uart_puts("-----"); uart_puts("\r\n");
@@ -115,6 +188,7 @@ int main(void) {
     lcd_puts(" A");
     // process commands from uart
     process_uart();
+    process_command();
   }
 }
 
@@ -140,6 +214,7 @@ ISR (TIMER1_COMPA_vect) {
   }
   else {
     CLR(PORT_PULSES,PULSES); //toggle PULSES pin 
+    IN(PORT_PULSES,PULSES); // PULSES pin to input (high impedance). It allow to control it for the company's controler.
     IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
   }
 }

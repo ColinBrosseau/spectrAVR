@@ -26,28 +26,13 @@ for easier microcontroler change.
 
 unsigned char data_count = 0;
 unsigned char data_in[bufferLength];
-char command_in[bufferLength];
+extern char command_in[bufferLength];
 
 extern double Position_A; //variable from main program
 extern long Position; //variable from main program
 extern unsigned long switchToDo; //variable from main program
 
-long Position2go;
-double Position2go_A;
 
-double parse_assignment (char input[bufferLength]) {
-  char *pch;
-  char cmdValue[bufferLength];
-  // Find the position the equals sign is
-  // in the string, keep a pointer to it
-  pch = strchr(input, '=');
-  // Copy everything after that point into
-  // the buffer variable
-  strcpy(cmdValue, pch+1);
-  // Now turn this value into an integer and
-  // return it to the caller.
-  return atof(cmdValue);
-}
 
 void copy_command () {
   // Copy the contents of data_in into command_in
@@ -56,47 +41,6 @@ void copy_command () {
   memset(data_in, 0, bufferLength);
 }
 
-// Process commands get from uart
-void process_command() {
-  if(strcasestr(command_in,"A") != NULL){
-    if(strcasestr(command_in,"?") != NULL)
-      print_value("A", Position_A);
-    else {
-      Position_A = parse_assignment(command_in);
-      Position = Position_A*step2position;
-    }
-  }
-  else if(strcasestr(command_in,"GOTO") != NULL){
-    char buffer[16];
-
-    Position2go_A = parse_assignment(command_in);
-
-    dtostrf(Position2go_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    uart_puts("to go:  ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
-
-    dtostrf(Position_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    uart_puts("actuel: ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
- 
-    Position2go = Position2go_A*step2position;
-
-    ltoa(Position2go,buffer,10); 
-    uart_puts("step to go  ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
-
-    ltoa(Position,buffer,10); 
-    uart_puts("step actuel ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
-
-    switchToDo = (Position2go - Position);
-
-  }
-} 
 
 void print_value (char *id, double value) {
   char buffer[bufferLength];
@@ -119,7 +63,7 @@ void process_uart(){
    * in the higher byte (bitmask) the last receive error
    * UART_NO_DATA is returned when no data is available.   */
   unsigned int c = uart_getc();
-  
+
   if ( c & UART_NO_DATA ){
     // no data available from UART 
   }
@@ -151,7 +95,7 @@ void process_uart(){
       uart_puts(RETURN_NEWLINE);
       
       copy_command();
-      process_command();
+      //process_command();
       uart_ok();
     } 
     else {
