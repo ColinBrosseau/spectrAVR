@@ -140,6 +140,8 @@ void process_command() {
   memset(command_in, 0, bufferLength); //erase the command
 } 
 
+//char buffer[16];
+
 int main(void) {
   //clean command input from outside world (uart) buffer
   memset(command_in, 0, bufferLength);
@@ -152,17 +154,6 @@ int main(void) {
   //Turn  INPUT_DIRECTION pin to input
   IN(PORT_INPUT_DIRECTION,INPUT_DIRECTION); // Set INPUT_DIRECTION pin as input
 
-  //Turn on INPUT_PULSE pin interrupt on falling edge.
-  IN(PORT_INPUT_PULSES,INPUT_PULSES); // Set INPUT_PULSES pin as input
-  #if defined(__AVR_ATmega8__) 
-  GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
-  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) 
-  #else
-  GICR |= _BV(INT0);  //Enable INT0
-  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69) 
-  #endif
-  sei();//turn on interrupts
-
   pulseDuration = period*DUTY/100;   // set pulseDuration
 
   //Direction pin
@@ -172,7 +163,7 @@ int main(void) {
   //Pulses pin
   OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
   //setup pulse pin at default level
-  if (pulses)
+  if (pulses == HIGH)
     CLR(PORT_PULSES,PULSES); // PULSE pin goes low
   else 
     SET(PORT_PULSES,PULSES); // PULSE pin goes high 
@@ -193,8 +184,23 @@ int main(void) {
   char bufferLCD[16];
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
+  lcd_puts("SpectrAVR 1.97"); /* put string to display (line 1) with linefeed */ 
         
+  //Turn on INPUT_PULSE pin interrupt on falling edge.
+  IN(PORT_INPUT_PULSES,INPUT_PULSES); // Set INPUT_PULSES pin as input
+  #if defined(__AVR_ATmega8__) 
+  GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
+  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) 
+  #else
+  GICR |= _BV(INT0);  //Enable INT0
+  //MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69) 
+  MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69) 
+  #endif
+  sei();//turn on interrupts
+
+  switchToDo = 0;
+  Position = 0;
+
   while(1) {
     _delay_ms(200);
     // LCD display
@@ -211,6 +217,12 @@ int main(void) {
       IN(PORT_PULSES,PULSES);
       IN(PORT_DIRECTION,DIRECTION);
     }
+    /* ltoa(switchToDo,buffer,10); */
+    /* uart_puts(buffer); */
+    /* uart_puts("    "); */
+    /* ltoa(Position,buffer,10); */
+    /* uart_puts(buffer); */
+    /* uart_puts("\r\n"); */
   }
 }
 
@@ -240,7 +252,8 @@ ISR(INT0_vect) {
   else {
     Position -= 1;    
   }
-  switchToDo -= 1; 
+  if (switchToDo > 0) 
+    switchToDo -= 1; 
 } 
 
 void backlash(void) {
