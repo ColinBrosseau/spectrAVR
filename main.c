@@ -70,7 +70,7 @@ double parse_assignment (char input[bufferLength]) {
   char cmdValue[bufferLength];
   // Find the position the equals sign is
   // in the string, keep a pointer to it
-  pch = strchr(input, '=');
+  pch = strchr(input, ' ');
   // Copy everything after that point into
   // the buffer variable
   strcpy(cmdValue, pch+1);
@@ -97,27 +97,27 @@ void process_command() {
 
     Position2go_A = parse_assignment(command_in);
 
-    dtostrf(Position2go_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    uart_puts("to go:  ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
+    /* dtostrf(Position2go_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code. */
+    /* uart_puts("to go:  "); */
+    /* uart_puts(buffer); */
+    /* uart_puts("\r\n"); */
 
-    dtostrf(Position_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    uart_puts("actuel: ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
+    /* dtostrf(Position_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code. */
+    /* uart_puts("actuel: "); */
+    /* uart_puts(buffer); */
+    /* uart_puts("\r\n"); */
  
     Position2go = Position2go_A*step2position;
 
-    ltoa(Position2go,buffer,10); 
-    uart_puts("step to go  ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
+    /* ltoa(Position2go,buffer,10);  */
+    /* uart_puts("step to go  "); */
+    /* uart_puts(buffer); */
+    /* uart_puts("\r\n"); */
 
-    ltoa(Position,buffer,10); 
-    uart_puts("step actuel ");
-    uart_puts(buffer);
-    uart_puts("\r\n");
+    /* ltoa(Position,buffer,10);  */
+    /* uart_puts("step actuel "); */
+    /* uart_puts(buffer); */
+    /* uart_puts("\r\n"); */
 
     OUT(PORT_PULSES,PULSES);
     OUT(PORT_DIRECTION,DIRECTION);
