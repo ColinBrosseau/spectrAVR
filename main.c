@@ -130,6 +130,10 @@ void process_command() {
       RECULE;       
     }
   }
+  else if(strcasestr(command_in,"STOP") != NULL){
+    switchToDo = 50;
+  }
+
   memset(command_in, 0, bufferLength); //erase the command
 } 
 
