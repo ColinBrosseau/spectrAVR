@@ -7,6 +7,7 @@
 
 #define UART_BAUD_RATE 57600 //uart speed
 
+//spectrometer characteristics
 #define step2position 200 //convert number of steps in physical position (here Angstroms)
 //pulses speed and acceleration
 int N = 500; //number of pulses to fully accelerate. 50 semble correct
@@ -39,25 +40,23 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #define PORT_DIRECTION PORTD //PORT of direction pin
 #define PORT_LED PORTA //PORT of led pin
 
-#define AVANCE CLR(PORT_DIRECTION,DIRECTION);
-#define RECULE SET(PORT_DIRECTION,DIRECTION);
+#define AVANCE CLR(PORT_DIRECTION,DIRECTION); //set pin to increase wavelength
+#define RECULE SET(PORT_DIRECTION,DIRECTION); //set pin to decrease wavelength
 
-int pulses = HIGH; //a pulse is when logic level goes to low
+int pulses = HIGH; //a pulse is when logic level goes to high
 long Position = 0; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
-long Position2go;
-double Position2go_A;
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
 volatile unsigned long i = 0;//used for pulse generation
-long j;//general purpose
 
+//for command from uart
 #define bufferLength 20
 char command_in[bufferLength];
 
-#define setPulse(x) switchToDo = x //set number of pulses to send 
+//#define setPulse(x) switchToDo = x //set number of pulses to send 
 //#define setPulseDuration(x) pulseDuration = period*DUTY/100;
 
 /* void setPulse(unsigned long steps) { */
@@ -82,6 +81,9 @@ double parse_assignment (char input[bufferLength]) {
 
 // Process commands get from uart
 void process_command() {
+  long Position2go;
+  double Position2go_A;
+
   if(strcasestr(command_in,"A") != NULL){
     if(strcasestr(command_in,"?") != NULL)
       print_value("A", Position_A);
@@ -155,7 +157,6 @@ int main(void) {
   sei();//turn on interrupts
 
   pulseDuration = period*DUTY/100;   // set pulseDuration
-  //setPulse(4); //@ 200 pulses/Angstrom
 
   //Direction pin
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
@@ -187,8 +188,6 @@ int main(void) {
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
         
-  setPulse(8);
-
   while(1) {
     _delay_ms(200);
     // LCD display
@@ -221,7 +220,7 @@ ISR (TIMER1_COMPA_vect) {
     TOGL(PORT_PULSES,PULSES); //toggle PULSES pin    
   }
   else {
-    CLR(PORT_PULSES,PULSES); // PULSES pin to LOW
+  //CLR(PORT_PULSES,PULSES); // PULSES pin to LOW
     //IN(PORT_PULSES,PULSES); // PULSES pin to input (high impedance). It allow to control it for the company's controler.
     //IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
   }
@@ -240,10 +239,10 @@ ISR(INT0_vect) {
 void backlash(void) {
   //revient sur ses pas
   _delay_ms(100);
-  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin    
-  setPulse(5);
+  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin  
+  switchToDo = 5;
   //retourne a sa position initiale
   _delay_ms(100);
   TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin    
-  setPulse(5);
+  switchToDo = 5;
 }
