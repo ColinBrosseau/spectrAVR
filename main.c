@@ -119,6 +119,9 @@ void process_command() {
     uart_puts(buffer);
     uart_puts("\r\n");
 
+    OUT(PORT_PULSES,PULSES);
+    OUT(PORT_DIRECTION,DIRECTION);
+
     backlash;
 
     if (Position2go > Position) {
@@ -144,7 +147,7 @@ int main(void) {
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("SpectrAVR Version 1.95"); uart_puts("\r\n");
+  uart_puts("SpectrAVR Version 1.97"); uart_puts("\r\n");
 
   //Turn  INPUT_DIRECTION pin to input
   IN(PORT_INPUT_DIRECTION,INPUT_DIRECTION); // Set INPUT_DIRECTION pin as input
@@ -203,6 +206,11 @@ int main(void) {
     // process commands from uart
     process_uart();
     process_command();
+    // put PULSES and DIRECTIN pins to input if not moving (for external controler compatibility)
+    if (switchToDo == 0) {
+      IN(PORT_PULSES,PULSES);
+      IN(PORT_DIRECTION,DIRECTION);
+    }
   }
 }
 
@@ -222,11 +230,6 @@ ISR (TIMER1_COMPA_vect) {
       OCR1A = period - pulseDuration;     // Duration of inter-pulses
     }
     TOGL(PORT_PULSES,PULSES); //toggle PULSES pin    
-  }
-  else {
-  //CLR(PORT_PULSES,PULSES); // PULSES pin to LOW
-    //IN(PORT_PULSES,PULSES); // PULSES pin to input (high impedance). It allow to control it for the company's controler.
-    //IN(PORT_DIRECTION,DIRECTION); // DIRECTION pin to input (high impedance). It allow to control it for the company's controler.
   }
 }
 
