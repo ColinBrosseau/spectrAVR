@@ -24,7 +24,8 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #include "uart.h"
 #include <string.h>
 
-#define PUSH PD2 // Define push-button pin on PD2 (Int0)
+#define INPUT_PULSES PD2 // Define INPUT_PULSE pin on PD2 (Int0)
+#define INPUT_DIRECTION PD4 // Define INPUT_DIRECTION pin on PD4 
 #define DIRECTION PD6 // Spectrometer direction pin on PD6
 #define PULSES PD5 // Spectrometer pulses pin on PD5 (for future PWM conversion)
 #define LED PA0 // Display led pin on PA0 
@@ -32,15 +33,14 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #define LOW 0 //logic level low
 #define DUTY 10 //duty cycle (in %)
 
-#define PORT_PUSH PORTD //PORT of push pin
+#define PORT_INPUT_DIRECTION PORTD //PORT of INPUT_DIRECTION pin
+#define PORT_INPUT_PULSES PORTD //PORT of INPUT_PULSES pin
 #define PORT_PULSES PORTD //PORT of pulse pin
 #define PORT_DIRECTION PORTD //PORT of direction pin
 #define PORT_LED PORTA //PORT of led pin
 
-#define AVANCE SET(PORT_DIRECTION,DIRECTION);
-#define RECULE CLR(PORT_DIRECTION,DIRECTION);
-typedef unsigned char bool; 
-bool avance = HIGH;
+#define AVANCE CLR(PORT_DIRECTION,DIRECTION);
+#define RECULE SET(PORT_DIRECTION,DIRECTION);
 
 int pulses = HIGH; //a pulse is when logic level goes to low
 long Position = 0; //Position of the motor (steps)
@@ -122,31 +122,29 @@ void process_command() {
     if (Position2go > Position) {
       switchToDo = Position2go - Position;
       AVANCE;
-      avance = HIGH;
     }
     else {
       switchToDo = - Position2go + Position;
       RECULE;       
-      avance = LOW;
     }
   }
   memset(command_in, 0, bufferLength); //erase the command
 } 
 
 int main(void) {
+  //clean command input from outside world (uart) buffer
   memset(command_in, 0, bufferLength);
 
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("AVR U1000 Version 1.95"); uart_puts("\r\n");
+  uart_puts("SpectrAVR Version 1.95"); uart_puts("\r\n");
 
-  //for LCD
-  char bufferLCD[16];
+  //Turn  INPUT_DIRECTION pin to input
+  IN(PORT_INPUT_DIRECTION,INPUT_DIRECTION); // Set INPUT_DIRECTION pin as input
 
-  IN(PORT_PUSH,PUSH); // Set push pin in
-
-  //Turn on Push button pin interrupt on falling edge.
+  //Turn on INPUT_PULSE pin interrupt on falling edge.
+  IN(PORT_INPUT_PULSES,INPUT_PULSES); // Set INPUT_PULSES pin as input
   #if defined(__AVR_ATmega8__) 
   GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
   MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) 
@@ -184,6 +182,7 @@ int main(void) {
   sei(); // enable interrupts
 
   //LCD
+  char bufferLCD[16];
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
   lcd_puts("AVR U1000"); /* put string to display (line 1) with linefeed */ 
@@ -229,8 +228,7 @@ ISR (TIMER1_COMPA_vect) {
 }
 
 ISR(INT0_vect) {
-  //if (READ(PORT_DIRECTION,DIRECTION) == HIGH) {
-  if (avance == HIGH) {
+  if (READ(PORT_INPUT_DIRECTION,INPUT_DIRECTION) == LOW) {
     Position += 1;
   }
   else {
