@@ -15,9 +15,9 @@ int speedLow = 11000; //minimum speed (actually period)
 int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
 
 #include <avr/io.h>
-#include <avr/interrupt.h>
+#include <avr/interrupt.h> //for uart
 #include <stdlib.h> //for LCD
-#include <avr/pgmspace.h>  //for LCD
+#include <avr/pgmspace.h>  //for LCD //for uart
 #include <util/delay.h>
 #include "def.h" //common definitions
 #include "lcd.h" //for LCD
@@ -43,7 +43,9 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #define AVANCE CLR(PORT_DIRECTION,DIRECTION); //set pin to increase wavelength
 #define RECULE SET(PORT_DIRECTION,DIRECTION); //set pin to decrease wavelength
 
+#define HighPulse
 int pulses = HIGH; //a pulse is when logic level goes to high
+
 long Position = 0; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
@@ -55,13 +57,6 @@ volatile unsigned long i = 0;//used for pulse generation
 //for command from uart
 #define bufferLength 20
 char command_in[bufferLength];
-
-//#define setPulse(x) switchToDo = x //set number of pulses to send 
-//#define setPulseDuration(x) pulseDuration = period*DUTY/100;
-
-/* void setPulse(unsigned long steps) { */
-/*   switchToDo = steps; */
-/* } */
 
 void backlash(void);
 
@@ -130,7 +125,7 @@ void process_command() {
     }
     else {
       switchToDo = - Position2go + Position;
-      RECULE;       
+      RECULE;
     }
   }
   else if(strcasestr(command_in,"STOP") != NULL){
@@ -138,7 +133,7 @@ void process_command() {
   }
 
   memset(command_in, 0, bufferLength); //erase the command
-} 
+}
 
 //char buffer[16];
 
@@ -148,6 +143,7 @@ int main(void) {
 
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
+  sei(); //enable interrupt, since UART library is interrupt controlled
   uart_puts("-----"); uart_puts("\r\n");
   uart_puts("SpectrAVR Version 1.97"); uart_puts("\r\n");
 
@@ -158,15 +154,17 @@ int main(void) {
 
   //Direction pin
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
-  SET(PORT_DIRECTION,DIRECTION); // DIRECTION goes high 
+  SET(PORT_DIRECTION,DIRECTION); // DIRECTION goes high
 
   //Pulses pin
   OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
   //setup pulse pin at default level
-  if (pulses == HIGH)
-    CLR(PORT_PULSES,PULSES); // PULSE pin goes low
-  else 
-    SET(PORT_PULSES,PULSES); // PULSE pin goes high 
+  /* #ifdef HighPulse */
+  //  CLR(PORT_PULSES,PULSES); // PULSE pin goes low
+  /* #endif  */
+  /* #ifndef HighPulse */
+  /*   SET(PORT_PULSES,PULSES); // PULSE pin goes high  */
+  /* #endif  */
   
   //Led pin
   OUT(PORT_LED,LED); // Set output on LED pin
@@ -174,39 +172,42 @@ int main(void) {
 
   //set timer 1
   //for pulse generation
-  OCR1A = 50000; 
+  OCR1A = 50000;
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
-  TIMSK |= (1 << OCIE1A); //Set interrupt on compare match   
-  TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer    
+  TIMSK |= (1 << OCIE1A); //Set interrupt on compare match
+  TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer
   sei(); // enable interrupts
 
   //LCD
   char bufferLCD[16];
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.97"); /* put string to display (line 1) with linefeed */ 
+  lcd_puts("SpectrAVR 1.97"); /* put string to display (line 1) with linefeed */
         
   //Turn on INPUT_PULSE pin interrupt on falling edge.
   IN(PORT_INPUT_PULSES,INPUT_PULSES); // Set INPUT_PULSES pin as input
-  #if defined(__AVR_ATmega8__) 
+  #if defined(__AVR_ATmega8__)
   GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
-  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) 
+  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66)
   #else
   GICR |= _BV(INT0);  //Enable INT0
-  //MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69) 
-  MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69) 
+  //MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
+  MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
   #endif
   sei();//turn on interrupts
 
   switchToDo = 0;
   Position = 0;
+  //switchToDo = 5000;
 
   while(1) {
     _delay_ms(200);
+    TOGL(PORT_LED,LED); // toggle LED
+    //TOGL(PORT_PULSES,PULSES); //for testing
     // LCD display
     Position_A = (double)Position/step2position;
     dtostrf(Position_A,9,3,bufferLCD); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    lcd_gotoxy(0,1); 
+    lcd_gotoxy(0,1);
     lcd_puts(bufferLCD);
     lcd_puts(" A");
     // process commands from uart
@@ -219,7 +220,7 @@ int main(void) {
     }
     /* ltoa(switchToDo,buffer,10); */
     /* uart_puts(buffer); */
-    /* uart_puts("    "); */
+    /* uart_puts(" - Poulet - "); */
     /* ltoa(Position,buffer,10); */
     /* uart_puts(buffer); */
     /* uart_puts("\r\n"); */
@@ -231,9 +232,9 @@ ISR (TIMER1_COMPA_vect) {
   if (switchToDo > 0) {
     if (READ(PORT_PULSES,PULSES) == LOW) {
       i++;
-      //period: 
+      //period:
       if (i<N) //acceleration
-	period = speedLow - (speedLow-speedFast)/N * i; 
+	period = speedLow - (speedLow-speedFast)/N * i;
       if (switchToDo < N*2) //deceleration
 	period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
       OCR1A = pulseDuration;      // Duration of the pulses
@@ -241,7 +242,7 @@ ISR (TIMER1_COMPA_vect) {
     else {
       OCR1A = period - pulseDuration;     // Duration of inter-pulses
     }
-    TOGL(PORT_PULSES,PULSES); //toggle PULSES pin    
+    TOGL(PORT_PULSES,PULSES); //toggle PULSES pin
   }
 }
 
@@ -250,19 +251,19 @@ ISR(INT0_vect) {
     Position += 1;
   }
   else {
-    Position -= 1;    
+    Position -= 1;
   }
-  if (switchToDo > 0) 
-    switchToDo -= 1; 
-} 
+  if (switchToDo > 0)
+    switchToDo -= 1;
+}
 
 void backlash(void) {
   //revient sur ses pas
   _delay_ms(100);
-  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin  
+  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin
   switchToDo = 5;
   //retourne a sa position initiale
   _delay_ms(100);
-  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin    
+  TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin
   switchToDo = 5;
 }
