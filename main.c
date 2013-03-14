@@ -10,7 +10,7 @@
 //spectrometer characteristics
 #define step2position 200 //convert number of steps in physical position (here Angstroms)
 //pulses speed and acceleration
-int N = 500; //number of pulses to fully accelerate. 50 semble correct
+int N = 3000; //number of pulses to fully accelerate. 50 semble correct
 int speedLow = 11000; //minimum speed (actually period)
 int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
 
@@ -43,8 +43,7 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #define AVANCE CLR(PORT_DIRECTION,DIRECTION); //set pin to increase wavelength
 #define RECULE SET(PORT_DIRECTION,DIRECTION); //set pin to decrease wavelength
 
-#define HighPulse
-int pulses = HIGH; //a pulse is when logic level goes to high
+//#define HighPulse  // uncomment if pulses are HIGH. Stay commented if pulses are LOW.
 
 long Position = 0; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)
@@ -117,8 +116,10 @@ void process_command() {
     OUT(PORT_PULSES,PULSES);
     OUT(PORT_DIRECTION,DIRECTION);
 
+    i=0;
     backlash;
 
+    i=0;
     if (Position2go > Position) {
       switchToDo = Position2go - Position;
       AVANCE;
@@ -129,13 +130,14 @@ void process_command() {
     }
   }
   else if(strcasestr(command_in,"STOP") != NULL){
-    switchToDo = 50;
+    i = N; //suppose motor is already moving at full speed
+    switchToDo = N;
   }
 
   memset(command_in, 0, bufferLength); //erase the command
 }
 
-//char buffer[16];
+char buffer[16];
 
 int main(void) {
   //clean command input from outside world (uart) buffer
@@ -159,13 +161,12 @@ int main(void) {
   //Pulses pin
   OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
   //setup pulse pin at default level
-  /* #ifdef HighPulse */
-  //  CLR(PORT_PULSES,PULSES); // PULSE pin goes low
-  /* #endif  */
-  /* #ifndef HighPulse */
-  /*   SET(PORT_PULSES,PULSES); // PULSE pin goes high  */
-  /* #endif  */
-  
+#if defined(HighPulse)
+  CLR(PORT_PULSES,PULSES); // PULSE pin goes low
+#else
+  SET(PORT_PULSES,PULSES); // PULSE pin goes high
+#endif
+			     
   //Led pin
   OUT(PORT_LED,LED); // Set output on LED pin
   SET(PORT_LED,LED); // LED goes high 
@@ -186,14 +187,19 @@ int main(void) {
         
   //Turn on INPUT_PULSE pin interrupt on falling edge.
   IN(PORT_INPUT_PULSES,INPUT_PULSES); // Set INPUT_PULSES pin as input
-  #if defined(__AVR_ATmega8__)
-  GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2)
-  MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66)
-  #else
+  /* #if defined(__AVR_ATmega8__) */
+  /* GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2) */
+  /* MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) */
+  /* #else */
   GICR |= _BV(INT0);  //Enable INT0
-  //MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
-  MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
-  #endif
+#if defined(HighPulse)
+      MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
+#else
+      MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
+#endif
+  /* //MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69) */
+  /* // MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69) */
+  /* #endif */
   sei();//turn on interrupts
 
   switchToDo = 0;
@@ -220,7 +226,7 @@ int main(void) {
     }
     /* ltoa(switchToDo,buffer,10); */
     /* uart_puts(buffer); */
-    /* uart_puts(" - Poulet - "); */
+    /* uart_puts("   ---   "); */
     /* ltoa(Position,buffer,10); */
     /* uart_puts(buffer); */
     /* uart_puts("\r\n"); */
@@ -230,7 +236,11 @@ int main(void) {
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
   if (switchToDo > 0) {
+#if defined(HighPulse)
     if (READ(PORT_PULSES,PULSES) == LOW) {
+#else
+    if (READ(PORT_PULSES,PULSES)) { //so its high (has to be written like that)
+#endif
       i++;
       //period:
       if (i<N) //acceleration
@@ -238,11 +248,21 @@ ISR (TIMER1_COMPA_vect) {
       if (switchToDo < N*2) //deceleration
 	period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
       OCR1A = pulseDuration;      // Duration of the pulses
+#if defined(HighPulse)
+      SET(PORT_PULSES,PULSES); // PULSE pin goes high
+#else
+      CLR(PORT_PULSES,PULSES); // PULSE pin goes low 
+#endif
     }
     else {
       OCR1A = period - pulseDuration;     // Duration of inter-pulses
+#if defined(HighPulse)
+      CLR(PORT_PULSES,PULSES); // PULSE pin goes low
+#else
+      SET(PORT_PULSES,PULSES); // PULSE pin goes high 
+#endif
     }
-    TOGL(PORT_PULSES,PULSES); //toggle PULSES pin
+//TOGL(PORT_PULSES,PULSES); // PULSE pin goes low
   }
 }
 
