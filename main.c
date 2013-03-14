@@ -10,7 +10,7 @@
 //spectrometer characteristics
 #define step2position 200 //convert number of steps in physical position (here Angstroms)
 //pulses speed and acceleration
-int N = 3000; //number of pulses to fully accelerate. 50 semble correct
+int N = 50; //number of pulses to fully accelerate. 50 semble correct
 int speedLow = 11000; //minimum speed (actually period)
 int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
 
@@ -59,6 +59,11 @@ char command_in[bufferLength];
 
 void backlash(void);
 
+void uart_ok() {
+  uart_puts("OK");
+  uart_puts(RETURN_NEWLINE);
+}
+
 double parse_assignment (char input[bufferLength]) {
   char *pch;
   char cmdValue[bufferLength];
@@ -84,6 +89,7 @@ void process_command() {
     else {
       Position_A = parse_assignment(command_in);
       Position = Position_A*step2position;
+      uart_ok();
     }
   }
   else if(strcasestr(command_in,"GOTO") != NULL){
@@ -117,7 +123,7 @@ void process_command() {
     OUT(PORT_DIRECTION,DIRECTION);
 
     i=0;
-    backlash;
+    backlash();
 
     i=0;
     if (Position2go > Position) {
@@ -261,11 +267,15 @@ ISR (TIMER1_COMPA_vect) {
 #else
       SET(PORT_PULSES,PULSES); // PULSE pin goes high 
 #endif
+      if (switchToDo == 6){
+        uart_ok();
+      }
     }
 //TOGL(PORT_PULSES,PULSES); // PULSE pin goes low
   }
 }
 
+//count pulses (input) so it knows where are the motors
 ISR(INT0_vect) {
   if (READ(PORT_INPUT_DIRECTION,INPUT_DIRECTION) == LOW) {
     Position += 1;

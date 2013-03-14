@@ -14,3 +14,9 @@
 #define CLR(port,pin) (PORT(port) &= ~(1<<pin)) //set pin to low state
 #define TOGL(port,pin)(PORT(port) ^=  (1<<pin)) //toggle pin state
 #define READ(port,pin)(PIN(port) &   (1<<pin))  //read pin state
+
+#define TRUE 1
+#define FALSE 0
+#define CHAR_NEWLINE '\n'
+#define CHAR_RETURN '\r'
+#define RETURN_NEWLINE "\r\n"

@@ -52,10 +52,10 @@ void print_value (char *id, double value) {
   uart_puts(RETURN_NEWLINE);
 }
 
-void uart_ok() {
-  uart_puts("OK");
-  uart_puts(RETURN_NEWLINE);
-}
+/* void uart_ok() { */
+/*   uart_puts("OK"); */
+/*   uart_puts(RETURN_NEWLINE); */
+/* } */
 
 void process_uart(){
   /* Get received character from ringbuffer
@@ -96,7 +96,7 @@ void process_uart(){
       
       copy_command();
       //process_command();
-      uart_ok();
+      //uart_ok();
     } 
     else {
       data_count++;
