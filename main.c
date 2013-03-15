@@ -52,6 +52,7 @@ int pulseDuration; //duration of the pulse (timer units)
 volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
 volatile unsigned long i = 0;//used for pulse generation
+unsigned char Moving = 0; //set to 1 if spectrometer is moving
 
 //for command from uart
 #define bufferLength 20
@@ -121,6 +122,8 @@ void process_command() {
 
     OUT(PORT_PULSES,PULSES);
     OUT(PORT_DIRECTION,DIRECTION);
+
+    Moving = 1;
 
     i=0;
     backlash();
@@ -267,12 +270,18 @@ ISR (TIMER1_COMPA_vect) {
 #else
       SET(PORT_PULSES,PULSES); // PULSE pin goes high 
 #endif
-      if (switchToDo == 6){
-        uart_ok();
-      }
+      /* if (switchToDo == 6){ */
+      /*   uart_ok(); */
+      /* } */
     }
 //TOGL(PORT_PULSES,PULSES); // PULSE pin goes low
   }
+    else {
+      if (Moving) { //spectrometer just finished its movement
+	Moving = 0;
+	uart_ok();
+      }
+    }
 }
 
 //count pulses (input) so it knows where are the motors
