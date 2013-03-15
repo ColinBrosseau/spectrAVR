@@ -6,6 +6,7 @@
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
 #define U1000
+//#define HR320
 
 #define UART_BAUD_RATE 57600 //uart speed
 
@@ -39,8 +40,8 @@ unsigned char Moving = 0; //set to 1 if spectrometer is moving
 #define bufferLength 20
 char command_in[bufferLength];
 
+//spectrometer characteristics
 #if defined(U1000)
-  //spectrometer characteristics
   #define step2position 200 //convert number of steps in physical position (here Angstroms)
   //pulses speed and acceleration
   int N = 50; //number of pulses to fully accelerate. 50 semble correct
@@ -50,12 +51,12 @@ char command_in[bufferLength];
 
   #define INPUT_PULSES PD2 // Define INPUT_PULSE pin on PD2 (Int0)
   #define INPUT_DIRECTION PD4 // Define INPUT_DIRECTION pin on PD4 
-  #define DIRECTION PD6 // Spectrometer direction pin on PD6
   #define PULSES PD5 // Spectrometer pulses pin on PD5 (for future PWM conversion)
+  #define DIRECTION PD6 // Spectrometer direction pin on PD6
   #define LED PA0 // Display led pin on PA0 
 
-  #define PORT_INPUT_DIRECTION PORTD //PORT of INPUT_DIRECTION pin
   #define PORT_INPUT_PULSES PORTD //PORT of INPUT_PULSES pin
+  #define PORT_INPUT_DIRECTION PORTD //PORT of INPUT_DIRECTION pin
   #define PORT_PULSES PORTD //PORT of pulse pin
   #define PORT_DIRECTION PORTD //PORT of direction pin
   #define PORT_LED PORTA //PORT of led pin
@@ -64,7 +65,27 @@ char command_in[bufferLength];
   #define RECULE SET(PORT_DIRECTION,DIRECTION); //set pin to decrease wavelength
 
 #elif defined(HR320)
+  #define step2position 10 //convert number of steps in physical position (here Angstroms)
   #define HighPulse  // Pulses are HIGH. 
+  //pulses speed and acceleration
+  int N = 50; //number of pulses to fully accelerate. 50 semble correct
+  int speedLow = 11000; //minimum speed (actually period)
+  int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
+  #define DUTY 10 //duty cycle for pulses (in %)
+
+  #define INPUT_PULSES_UP PD2 // Define INPUT_PULSE pin on PD2 (Int0)
+  #define INPUT_PULSES_DOWN PD4 // Define INPUT_DIRECTION pin on PD4 
+  #define PULSES_UP PD5 // Spectrometer pulses pin on PD5 
+  #define PULSES_DOWN PD6 // Spectrometer direction pin on PD6 //will have to change to int2 pin
+  #define LED PA0 // Display led pin on PA0 
+
+  #define PORT_INPUT_PULSES_UP PORTD //PORT of INPUT_PULSES_UP pin
+  #define PORT_INPUT_PULSES_DOWN PORTD //PORT of INPUT_PULSES_DOWN pin
+  #define PORT_PULSES_UP PORTD //PORT of PULSES_UP pin
+  #define PORT_PULSES_DOWN PORTD //PORT of PULSES_DOWN pin //will have to change to int2 pin
+  #define PORT_LED PORTA //PORT of led pin
+
+  unsigned char IncreasePosition;
 #endif
 
 void backlash(void);
@@ -108,9 +129,13 @@ void process_command() {
     Position2go_A = parse_assignment(command_in);
     Position2go = Position2go_A*step2position;
 
+#if defined(U1000)
     OUT(PORT_PULSES,PULSES);
     OUT(PORT_DIRECTION,DIRECTION);
-
+#elif defined(HR320)
+    OUT(PORT_INPUT_PULSES_UP,INPUT_PULSES_UP);
+    OUT(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN);
+#endif
 
     i=0;
     backlash();
@@ -118,11 +143,20 @@ void process_command() {
     i=0;
     if (Position2go > Position) {
       switchToDo = Position2go - Position;
+#if defined(U1000)
       AVANCE;
+#elif defined(HR320)
+      IncreasePosition = 1;
+#endif
     }
     else {
       switchToDo = - Position2go + Position;
+#if defined(U1000)
       RECULE;
+#elif defined(HR320)
+      IncreasePosition = 0;     
+#endif
+      
     }
     Moving = 1;
 
@@ -147,10 +181,21 @@ int main(void) {
   uart_puts("-----"); uart_puts("\r\n");
   uart_puts("SpectrAVR Version 1.98"); uart_puts("\r\n");
 
+  pulseDuration = period*DUTY/100;   // set pulseDuration
+
+  //LCD
+  char bufferLCD[16];
+  lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
+  lcd_clrscr(); /* clear display and home cursor */
+  lcd_puts("SpectrAVR 1.98"); /* put string to display (line 1) with linefeed */
+    
+  //Led pin
+  OUT(PORT_LED,LED); // Set output on LED pin
+  SET(PORT_LED,LED); // LED goes high 
+
+#if defined(U1000)
   //Turn  INPUT_DIRECTION pin to input
   IN(PORT_INPUT_DIRECTION,INPUT_DIRECTION); // Set INPUT_DIRECTION pin as input
-
-  pulseDuration = period*DUTY/100;   // set pulseDuration
 
   //Direction pin
   OUT(PORT_DIRECTION,DIRECTION); // Set output on DIRECTION pin
@@ -159,16 +204,8 @@ int main(void) {
   //Pulses pin
   OUT(PORT_PULSES,PULSES); // Set output on PULSES pin
   //setup pulse pin at default level
-#if defined(HighPulse)
-  CLR(PORT_PULSES,PULSES); // PULSE pin goes low
-#else
   SET(PORT_PULSES,PULSES); // PULSE pin goes high
-#endif
 			     
-  //Led pin
-  OUT(PORT_LED,LED); // Set output on LED pin
-  SET(PORT_LED,LED); // LED goes high 
-
   //set timer 1
   //for pulse generation
   OCR1A = 50000;
@@ -176,13 +213,7 @@ int main(void) {
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match
   TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer
   sei(); // enable interrupts
-
-  //LCD
-  char bufferLCD[16];
-  lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
-  lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.98"); /* put string to display (line 1) with linefeed */
-        
+   
   //Turn on INPUT_PULSE pin interrupt on falling edge.
   IN(PORT_INPUT_PULSES,INPUT_PULSES); // Set INPUT_PULSES pin as input
   /* #if defined(__AVR_ATmega8__) */
@@ -190,16 +221,46 @@ int main(void) {
   /* MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) */
   /* #else */
   GICR |= _BV(INT0);  //Enable INT0
-#if defined(HighPulse)
-      MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
-#else
-      MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
-#endif
+  MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
   sei();//turn on interrupts
+#elif defined(HR320)
+  //to be completed
+
+  //Pulses pins
+  OUT(PORT_PULSES_UP,PULSES_UP); // Set output on PULSES_UP pin
+  //setup pulse_UP pin at default level
+  CLR(PORT_PULSES_UP,PULSES_UP); // PULSE_UP pin goes high
+  OUT(PORT_PULSES_DOWN,PULSES_DOWN); // Set output on PULSES_UP pin
+  //setup pulse_DOWN pin at default level
+  CLR(PORT_PULSES_DOWN,PULSES_DOWN); // PULSE_DOWN pin goes high
+
+  //set timer 1
+  //for pulse generation
+  OCR1A = 50000;
+  TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
+  TIMSK |= (1 << OCIE1A); //Set interrupt on compare match
+  TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer  //!!! set correct prescaler
+  sei(); // enable interrupts
+   
+  //Turn on INPUT_PULSE pin interrupt on falling edge.
+  IN(PORT_INPUT_PULSES_UP,INPUT_PULSES_UP); // Set INPUT_PULSES_UP pin as input
+  /* #if defined(__AVR_ATmega8__) */
+  /* GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2) */
+  /* MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) */
+  /* #else */
+  GICR |= _BV(INT0);  //Enable INT0
+  //MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
+  MCUCR |= _BV(ISC01) ; //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
+  sei();//turn on interrupts
+
+  // input pins
+  IN(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN); // Set INPUT_PULSES_DOWN pin as input
+  //!!! activate interrupt
+
+#endif
 
   switchToDo = 0;
   Position = 0;
-  //switchToDo = 5000;
 
   while(1) {
     _delay_ms(200);
@@ -216,8 +277,13 @@ int main(void) {
     process_command();
     // put PULSES and DIRECTIN pins to input if not moving (for external controler compatibility)
     if (switchToDo == 0) {
+#if defined(U1000)
       IN(PORT_PULSES,PULSES);
       IN(PORT_DIRECTION,DIRECTION);
+#elif defined(HR320)
+      //to be completed
+#endif
+
     }
   }
 }
@@ -225,10 +291,10 @@ int main(void) {
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
   if (switchToDo > 0) {
-#if defined(HighPulse)
-    if (READ(PORT_PULSES,PULSES) == LOW) {
-#else
+#if defined(U1000)
     if (READ(PORT_PULSES,PULSES)) { //so its high (has to be written like that)
+#elif defined(HR320)
+    if (1) {  //to be completed
 #endif
       i++;
       //period:
@@ -237,43 +303,48 @@ ISR (TIMER1_COMPA_vect) {
       if (switchToDo < N*2) //deceleration
 	period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
       OCR1A = pulseDuration;      // Duration of the pulses
-#if defined(HighPulse)
-      SET(PORT_PULSES,PULSES); // PULSE pin goes high
-#else
+#if defined(U1000)
       CLR(PORT_PULSES,PULSES); // PULSE pin goes low 
+#elif defined(HR320)
+      //to be completed
 #endif
     }
     else {
       OCR1A = period - pulseDuration;     // Duration of inter-pulses
-#if defined(HighPulse)
-      CLR(PORT_PULSES,PULSES); // PULSE pin goes low
-#else
+#if defined(U1000)
       SET(PORT_PULSES,PULSES); // PULSE pin goes high 
+#elif defined(HR320)
+      //to be completed
 #endif
     }
 //TOGL(PORT_PULSES,PULSES); // PULSE pin goes low
   }
-    else {
-      if (Moving) { //spectrometer just finished its movement
-	Moving = 0;
-	uart_ok();
-      }
+  else {
+    if (Moving) { //spectrometer just finished its movement
+      Moving = 0;
+      uart_ok();
     }
+  }
 }
 
 //count pulses (input) so it knows where are the motors
 ISR(INT0_vect) {
+#if defined(U1000)
   if (READ(PORT_INPUT_DIRECTION,INPUT_DIRECTION) == LOW) {
     Position += 1;
   }
   else {
     Position -= 1;
   }
+#elif defined(HR320)
+  //to be completed
+#endif
   if (switchToDo > 0)
     switchToDo -= 1;
 }
 
 void backlash(void) {
+#if defined(U1000)
   //revient sur ses pas
   _delay_ms(100);
   TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin
@@ -282,4 +353,8 @@ void backlash(void) {
   _delay_ms(100);
   TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin
   switchToDo = 5;
+#elif defined(HR320)
+  //to be completed
+#endif
 }
+
