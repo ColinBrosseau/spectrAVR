@@ -5,14 +5,9 @@
 //Possible improvements:
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
-#define UART_BAUD_RATE 57600 //uart speed
+#define U1000
 
-//spectrometer characteristics
-#define step2position 200 //convert number of steps in physical position (here Angstroms)
-//pulses speed and acceleration
-int N = 50; //number of pulses to fully accelerate. 50 semble correct
-int speedLow = 11000; //minimum speed (actually period)
-int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
+#define UART_BAUD_RATE 57600 //uart speed
 
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
@@ -25,23 +20,9 @@ int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 co
 #include "uart.h"
 #include <string.h>
 
-#define INPUT_PULSES PD2 // Define INPUT_PULSE pin on PD2 (Int0)
-#define INPUT_DIRECTION PD4 // Define INPUT_DIRECTION pin on PD4 
-#define DIRECTION PD6 // Spectrometer direction pin on PD6
-#define PULSES PD5 // Spectrometer pulses pin on PD5 (for future PWM conversion)
-#define LED PA0 // Display led pin on PA0 
 #define HIGH 1 //logic level high
 #define LOW 0 //logic level low
-#define DUTY 10 //duty cycle (in %)
 
-#define PORT_INPUT_DIRECTION PORTD //PORT of INPUT_DIRECTION pin
-#define PORT_INPUT_PULSES PORTD //PORT of INPUT_PULSES pin
-#define PORT_PULSES PORTD //PORT of pulse pin
-#define PORT_DIRECTION PORTD //PORT of direction pin
-#define PORT_LED PORTA //PORT of led pin
-
-#define AVANCE CLR(PORT_DIRECTION,DIRECTION); //set pin to increase wavelength
-#define RECULE SET(PORT_DIRECTION,DIRECTION); //set pin to decrease wavelength
 
 //#define HighPulse  // uncomment if pulses are HIGH. Stay commented if pulses are LOW.
 
@@ -57,6 +38,34 @@ unsigned char Moving = 0; //set to 1 if spectrometer is moving
 //for command from uart
 #define bufferLength 20
 char command_in[bufferLength];
+
+#if defined(U1000)
+  //spectrometer characteristics
+  #define step2position 200 //convert number of steps in physical position (here Angstroms)
+  //pulses speed and acceleration
+  int N = 50; //number of pulses to fully accelerate. 50 semble correct
+  int speedLow = 11000; //minimum speed (actually period)
+  int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
+  #define DUTY 10 //duty cycle for pulses (in %)
+
+  #define INPUT_PULSES PD2 // Define INPUT_PULSE pin on PD2 (Int0)
+  #define INPUT_DIRECTION PD4 // Define INPUT_DIRECTION pin on PD4 
+  #define DIRECTION PD6 // Spectrometer direction pin on PD6
+  #define PULSES PD5 // Spectrometer pulses pin on PD5 (for future PWM conversion)
+  #define LED PA0 // Display led pin on PA0 
+
+  #define PORT_INPUT_DIRECTION PORTD //PORT of INPUT_DIRECTION pin
+  #define PORT_INPUT_PULSES PORTD //PORT of INPUT_PULSES pin
+  #define PORT_PULSES PORTD //PORT of pulse pin
+  #define PORT_DIRECTION PORTD //PORT of direction pin
+  #define PORT_LED PORTA //PORT of led pin
+
+  #define AVANCE CLR(PORT_DIRECTION,DIRECTION); //set pin to increase wavelength
+  #define RECULE SET(PORT_DIRECTION,DIRECTION); //set pin to decrease wavelength
+
+#elif defined(HR320)
+  #define HighPulse  // Pulses are HIGH. 
+#endif
 
 void backlash(void);
 
@@ -156,7 +165,7 @@ int main(void) {
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   sei(); //enable interrupt, since UART library is interrupt controlled
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("SpectrAVR Version 1.97"); uart_puts("\r\n");
+  uart_puts("SpectrAVR Version 1.98"); uart_puts("\r\n");
 
   //Turn  INPUT_DIRECTION pin to input
   IN(PORT_INPUT_DIRECTION,INPUT_DIRECTION); // Set INPUT_DIRECTION pin as input
@@ -192,7 +201,7 @@ int main(void) {
   char bufferLCD[16];
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.97"); /* put string to display (line 1) with linefeed */
+  lcd_puts("SpectrAVR 1.98"); /* put string to display (line 1) with linefeed */
         
   //Turn on INPUT_PULSE pin interrupt on falling edge.
   IN(PORT_INPUT_PULSES,INPUT_PULSES); // Set INPUT_PULSES pin as input
