@@ -111,7 +111,6 @@ void process_command() {
     OUT(PORT_PULSES,PULSES);
     OUT(PORT_DIRECTION,DIRECTION);
 
-    Moving = 1;
 
     i=0;
     backlash();
@@ -125,6 +124,8 @@ void process_command() {
       switchToDo = - Position2go + Position;
       RECULE;
     }
+    Moving = 1;
+
   }
   else if(strcasestr(command_in,"STOP") != NULL){
     i = N; //suppose motor is already moving at full speed
