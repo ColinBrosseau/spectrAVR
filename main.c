@@ -106,28 +106,7 @@ void process_command() {
     char buffer[16];
 
     Position2go_A = parse_assignment(command_in);
-
-    /* dtostrf(Position2go_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code. */
-    /* uart_puts("to go:  "); */
-    /* uart_puts(buffer); */
-    /* uart_puts("\r\n"); */
-
-    /* dtostrf(Position_A,0,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code. */
-    /* uart_puts("actuel: "); */
-    /* uart_puts(buffer); */
-    /* uart_puts("\r\n"); */
- 
     Position2go = Position2go_A*step2position;
-
-    /* ltoa(Position2go,buffer,10);  */
-    /* uart_puts("step to go  "); */
-    /* uart_puts(buffer); */
-    /* uart_puts("\r\n"); */
-
-    /* ltoa(Position,buffer,10);  */
-    /* uart_puts("step actuel "); */
-    /* uart_puts(buffer); */
-    /* uart_puts("\r\n"); */
 
     OUT(PORT_PULSES,PULSES);
     OUT(PORT_DIRECTION,DIRECTION);
@@ -215,9 +194,6 @@ int main(void) {
 #else
       MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
 #endif
-  /* //MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69) */
-  /* // MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69) */
-  /* #endif */
   sei();//turn on interrupts
 
   switchToDo = 0;
@@ -242,12 +218,6 @@ int main(void) {
       IN(PORT_PULSES,PULSES);
       IN(PORT_DIRECTION,DIRECTION);
     }
-    /* ltoa(switchToDo,buffer,10); */
-    /* uart_puts(buffer); */
-    /* uart_puts("   ---   "); */
-    /* ltoa(Position,buffer,10); */
-    /* uart_puts(buffer); */
-    /* uart_puts("\r\n"); */
   }
 }
 
@@ -279,9 +249,6 @@ ISR (TIMER1_COMPA_vect) {
 #else
       SET(PORT_PULSES,PULSES); // PULSE pin goes high 
 #endif
-      /* if (switchToDo == 6){ */
-      /*   uart_ok(); */
-      /* } */
     }
 //TOGL(PORT_PULSES,PULSES); // PULSE pin goes low
   }
