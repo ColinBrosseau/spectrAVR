@@ -58,16 +58,17 @@ void print_value (char *id, double value) {
 /* } */
 
 void process_uart(){
-  /* Get received character from ringbuffer
+  /* Get received characters from ringbuffer
+   * read until no more character to read in ringbuffer or end of command ('\r') detected
    * uart_getc() returns in the lower byte the received character and 
    * in the higher byte (bitmask) the last receive error
    * UART_NO_DATA is returned when no data is available.   */
   unsigned int c = uart_getc();
+  char ok = !(c & UART_NO_DATA); //1 if there was a character to read in uart, 0 if not
 
-  if ( c & UART_NO_DATA ){
-    // no data available from UART 
-  }
-  else {
+  while(ok) { //loop until no more character to read in ringbuffer or end of command detected
+    uart_putc( (unsigned char)c ); //echo back input character
+
     // new data available from UART check for Frame or Overrun error
     if ( c & UART_FRAME_ERROR ) {
       /* Framing Error detected, i.e no stop bit detected */
@@ -97,13 +98,15 @@ void process_uart(){
       copy_command();
       //process_command();
       //uart_ok();
+      ok = 0;
     } 
-    else {
+    else { //not end of command input. Try to read more characters
       data_count++;
+      c = uart_getc();
+      ok = !(c & UART_NO_DATA);     
     }
-    
-    uart_putc( (unsigned char)c );
   }
+
 }
 
 /* int main(void) {  */
