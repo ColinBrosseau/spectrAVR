@@ -263,7 +263,7 @@ int main(void) {
   Position = 0;
 
   while(1) {
-    _delay_ms(200);
+    _delay_ms(25);
     TOGL(PORT_LED,LED); // toggle LED
     //TOGL(PORT_PULSES,PULSES); //for testing
     // LCD display
