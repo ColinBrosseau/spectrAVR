@@ -124,7 +124,6 @@ void process_command() {
     }
   }
   else if(strcasestr(command_in,"GOTO") != NULL){
-    char buffer[16];
 
     Position2go_A = parse_assignment(command_in);
     Position2go = Position2go_A*step2position;
@@ -169,31 +168,27 @@ void process_command() {
   memset(command_in, 0, bufferLength); //erase the command
 }
 
-char buffer[16];
 
-int main(void) {
-  //clean command input from outside world (uart) buffer
-  memset(command_in, 0, bufferLength);
-
+//initialise UART communication
+void initUART(void) {
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   sei(); //enable interrupt, since UART library is interrupt controlled
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("SpectrAVR Version 1.98"); uart_puts("\r\n");
+  uart_puts("SpectrAVR Version 1.98a"); uart_puts("\r\n");
+}
 
-  pulseDuration = period*DUTY/100;   // set pulseDuration
-
+//initialise LCD display
+void initLCD(void) {
   //LCD
-  char bufferLCD[16];
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.98"); /* put string to display (line 1) with linefeed */
-    
-  //Led pin
-  OUT(PORT_LED,LED); // Set output on LED pin
-  SET(PORT_LED,LED); // LED goes high 
+  lcd_puts("SpectrAVR 1.98a"); /* put string to display (line 1) with linefeed */
+}
 
+//initialise IO on uC
 #if defined(U1000)
+void initIO(void) {
   //Turn  INPUT_DIRECTION pin to input
   IN(PORT_INPUT_DIRECTION,INPUT_DIRECTION); // Set INPUT_DIRECTION pin as input
 
@@ -223,7 +218,9 @@ int main(void) {
   GICR |= _BV(INT0);  //Enable INT0
   MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
   sei();//turn on interrupts
+}
 #elif defined(HR320)
+void initIO(void) {
   //to be completed
 
   //Pulses pins
@@ -256,8 +253,27 @@ int main(void) {
   // input pins
   IN(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN); // Set INPUT_PULSES_DOWN pin as input
   //!!! activate interrupt
-
+}
 #endif
+
+
+char buffer[16];
+char bufferLCD[16];
+
+int main(void) {
+  //clean command input from outside world (uart) buffer
+  memset(command_in, 0, bufferLength);
+
+  initUART(); //initialise UART communication
+  initLCD(); //Initialise LCD display
+
+  pulseDuration = period*DUTY/100;   // set pulseDuration
+    
+  //Led pin
+  OUT(PORT_LED,LED); // Set output on LED pin
+  SET(PORT_LED,LED); // LED goes high 
+
+  initIO();
 
   switchToDo = 0;
   Position = 0;
@@ -288,37 +304,44 @@ int main(void) {
   }
 }
 
+int calculate_period(int i) {
+  //period:
+  if (i<N) //acceleration
+    return speedLow - (speedLow-speedFast)/N * i;
+  if (switchToDo < N*2) //deceleration
+    return speedLow - (speedLow-speedFast)/N * switchToDo/2;
+}
+
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
+#if defined(U1000)
   if (switchToDo > 0) {
-#if defined(U1000)
     if (READ(PORT_PULSES,PULSES)) { //so its high (has to be written like that)
-#elif defined(HR320)
-    if (1) {  //to be completed
-#endif
       i++;
-      //period:
-      if (i<N) //acceleration
-	period = speedLow - (speedLow-speedFast)/N * i;
-      if (switchToDo < N*2) //deceleration
-	period = speedLow - (speedLow-speedFast)/N * switchToDo/2;
+      period = calculate_period(i);
       OCR1A = pulseDuration;      // Duration of the pulses
-#if defined(U1000)
       CLR(PORT_PULSES,PULSES); // PULSE pin goes low 
-#elif defined(HR320)
-      //to be completed
-#endif
     }
     else {
       OCR1A = period - pulseDuration;     // Duration of inter-pulses
-#if defined(U1000)
       SET(PORT_PULSES,PULSES); // PULSE pin goes high 
-#elif defined(HR320)
-      //to be completed
-#endif
     }
-//TOGL(PORT_PULSES,PULSES); // PULSE pin goes low
   }
+#elif defined(HR320)
+  if (switchToDo > 0) {
+    if (1) {  //to be completed
+      i++;
+      period = calculate_period(i);
+      OCR1A = pulseDuration;      // Duration of the pulses
+      //to be completed
+    }
+    else {
+      OCR1A = period - pulseDuration;     // Duration of inter-pulses
+      //to be completed
+    }
+  }
+#endif
+
   else {
     if (Moving) { //spectrometer just finished its movement
       Moving = 0;
