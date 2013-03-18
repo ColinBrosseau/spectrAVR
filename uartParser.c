@@ -7,7 +7,6 @@ uses Peter Fleury's uart library http://homepage.hispeed.ch/peterfleury/avr-soft
 for easier microcontroler change.
 *************************************************************************/
 #define bufferLength 20
-#define step2position 200 //convert number of steps in physical position (here Angstroms)
 
 #include <stdlib.h>
 #include <avr/io.h>
