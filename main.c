@@ -5,8 +5,8 @@
 //Possible improvements:
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
-#define U1000
-//#define HR320
+//#define U1000
+#define HR320
 
 #define UART_BAUD_RATE 57600 //uart speed
 
@@ -239,15 +239,26 @@ void initIO(void) {
   TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer  //!!! set correct prescaler
   sei(); // enable interrupts
    
-  //Turn on INPUT_PULSE pin interrupt on falling edge.
+  //Turn on INPUT_PULSE_UP pin interrupt on falling edge.
   IN(PORT_INPUT_PULSES_UP,INPUT_PULSES_UP); // Set INPUT_PULSES_UP pin as input
   /* #if defined(__AVR_ATmega8__) */
   /* GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2) */
   /* MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) */
   /* #else */
   GICR |= _BV(INT0);  //Enable INT0
+  MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger raising edge of INT0 //works for mega16 (manual p. 69)
+  //MCUCR |= _BV(ISC01) ; //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
+  sei();//turn on interrupts
+
+  //Turn on INPUT_PULSE_DOWN pin interrupt on falling edge.
+  IN(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN); // Set INPUT_PULSES_DOWN pin as input
+  /* #if defined(__AVR_ATmega8__) */
+  /* GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2) */
+  /* MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) */
+  /* #else */
+  GICR |= _BV(INT2);  //Enable INT2
   //MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
-  MCUCR |= _BV(ISC01) ; //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
+  MCUCSR |= _BV(ISC2) ; //Trigger on raising edge of INT2 //works for mega16 (manual p. 69)
   sei();//turn on interrupts
 
   // input pins
@@ -297,7 +308,8 @@ int main(void) {
       IN(PORT_PULSES,PULSES);
       IN(PORT_DIRECTION,DIRECTION);
 #elif defined(HR320)
-      //to be completed
+      IN(PORT_PULSES_UP,PULSES_UP);
+      IN(PORT_PULSES_DOWN,PULSES_DOWN);
 #endif
 
     }
@@ -329,15 +341,29 @@ ISR (TIMER1_COMPA_vect) {
   }
 #elif defined(HR320)
   if (switchToDo > 0) {
-    if (1) {  //to be completed
-      i++;
-      period = calculate_period(i);
-      OCR1A = pulseDuration;      // Duration of the pulses
-      //to be completed
+    if (IncreasePosition) {
+      if (READ(PORT_PULSES_UP,PULSES_UP) == LOW) {  
+	i++;
+	period = calculate_period(i);
+	OCR1A = pulseDuration;      // Duration of the pulses
+	SET(PORT_PULSES_UP,PULSES_UP);
+      }
+      else {
+	OCR1A = period - pulseDuration;     // Duration of inter-pulses
+	CLR(PORT_PULSES_UP,PULSES_UP);
+      }
     }
     else {
-      OCR1A = period - pulseDuration;     // Duration of inter-pulses
-      //to be completed
+      if (READ(PORT_PULSES_UP,PULSES_UP) == LOW) {  
+	i++;
+	period = calculate_period(i);
+	OCR1A = pulseDuration;      // Duration of the pulses
+	SET(PORT_PULSES_UP,PULSES_UP);
+      }
+      else {
+	OCR1A = period - pulseDuration;     // Duration of inter-pulses
+	CLR(PORT_PULSES_UP,PULSES_UP);
+      }
     }
   }
 #endif
@@ -352,6 +378,7 @@ ISR (TIMER1_COMPA_vect) {
 
 //count pulses (input) so it knows where are the motors
 ISR(INT0_vect) {
+
 #if defined(U1000)
   if (READ(PORT_INPUT_DIRECTION,INPUT_DIRECTION) == LOW) {
     Position += 1;
@@ -360,8 +387,9 @@ ISR(INT0_vect) {
     Position -= 1;
   }
 #elif defined(HR320)
-  //to be completed
+  Position += 1;
 #endif
+
   if (switchToDo > 0)
     switchToDo -= 1;
 }
@@ -377,7 +405,23 @@ void backlash(void) {
   TOGL(PORT_DIRECTION,DIRECTION); //toggle DIRECTION pin
   switchToDo = 5;
 #elif defined(HR320)
-  //to be completed
+  //revient sur ses pas
+  _delay_ms(100);
+  if (IncreasePosition) {
+    IncreasePosition = 0;
+  }
+  else {
+    IncreasePosition = 1;
+  }
+  switchToDo = 5;
+  _delay_ms(100);
+  if (IncreasePosition) {
+    IncreasePosition = 0;
+  }
+  else {
+    IncreasePosition = 1;
+  }
+  switchToDo = 5;
 #endif
 }
 
