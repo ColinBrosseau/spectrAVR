@@ -39,6 +39,7 @@
 
 #include <inttypes.h>
 #include <avr/pgmspace.h>
+#include "def.h" //common definitions
 
 /** 
  *  @name  Definitions for MCU Clock Frequency
@@ -69,7 +70,7 @@
 
 
 #define LCD_IO_MODE      1         /**< 0: memory mapped mode, 1: IO port mode */
-#if LCD_IO_MODE
+/* #if LCD_IO_MODE */
 /**
  *  @name Definitions for 4-bit IO mode
  *  Change LCD_PORT if you want to use a different port for the LCD pins.
@@ -84,35 +85,55 @@
  *  ports by adapting the LCD_DATAx_PORT and LCD_DATAx_PIN definitions.
  *  
  */
-#define LCD_PORT         PORTC        /**< port for the LCD lines   */
-#define LCD_DATA0_PORT   LCD_PORT     /**< port for 4bit data bit 0 */
-#define LCD_DATA1_PORT   LCD_PORT     /**< port for 4bit data bit 1 */
-#define LCD_DATA2_PORT   LCD_PORT     /**< port for 4bit data bit 2 */
-#define LCD_DATA3_PORT   LCD_PORT     /**< port for 4bit data bit 3 */
-#define LCD_DATA0_PIN    4            /**< pin for 4bit data bit 0  */
-#define LCD_DATA1_PIN    5            /**< pin for 4bit data bit 1  */
-#define LCD_DATA2_PIN    6            /**< pin for 4bit data bit 2  */
-#define LCD_DATA3_PIN    7            /**< pin for 4bit data bit 3  */
-#define LCD_RS_PORT      LCD_PORT     /**< port for RS line         */
-#define LCD_RS_PIN       3            /**< pin  for RS line         */
-#define LCD_E_PORT       LCD_PORT     /**< port for Enable line     */
-#define LCD_E_PIN        2            /**< pin  for Enable line     */
-#define LCD_RW_PORT      PORTD     /**< port for RW line         */
-#define LCD_RW_PIN       7            /**< pin  for RW line         */
-
-#elif defined(__AVR_AT90S4414__) || defined(__AVR_AT90S8515__) || defined(__AVR_ATmega64__) || \
-      defined(__AVR_ATmega8515__)|| defined(__AVR_ATmega103__) || defined(__AVR_ATmega128__) || \
-      defined(__AVR_ATmega161__) || defined(__AVR_ATmega162__)
-/*
- *  memory mapped mode is only supported when the device has an external data memory interface
- */
-#define LCD_IO_DATA      0xC000    /* A15=E=1, A14=RS=1                 */
-#define LCD_IO_FUNCTION  0x8000    /* A15=E=1, A14=RS=0                 */
-#define LCD_IO_READ      0x0100    /* A8 =R/W=1 (R/W: 1=Read, 0=Write   */
+#if defined(U1000)
+  #define LCD_PORT         PORTC        /**< port for the LCD lines   */
+  #define LCD_DATA0_PORT   LCD_PORT     /**< port for 4bit data bit 0 */
+  #define LCD_DATA1_PORT   LCD_PORT     /**< port for 4bit data bit 1 */
+  #define LCD_DATA2_PORT   LCD_PORT     /**< port for 4bit data bit 2 */
+  #define LCD_DATA3_PORT   LCD_PORT     /**< port for 4bit data bit 3 */
+  #define LCD_DATA0_PIN    4            /**< pin for 4bit data bit 0  */
+  #define LCD_DATA1_PIN    5            /**< pin for 4bit data bit 1  */
+  #define LCD_DATA2_PIN    6            /**< pin for 4bit data bit 2  */
+  #define LCD_DATA3_PIN    7            /**< pin for 4bit data bit 3  */
+  #define LCD_RS_PORT      LCD_PORT     /**< port for RS line         */
+  #define LCD_RS_PIN       3            /**< pin  for RS line         */
+  #define LCD_E_PORT       LCD_PORT     /**< port for Enable line     */
+  #define LCD_E_PIN        2            /**< pin  for Enable line     */
+  #define LCD_RW_PORT      PORTD        /**< port for RW line         */
+  #define LCD_RW_PIN       7            /**< pin  for RW line         */
+#elif defined(HR320)
+  #define LCD_PORT         PORTC        /**< port for the LCD lines   */
+  #define LCD_DATA0_PORT   LCD_PORT     /**< port for 4bit data bit 0 */
+  #define LCD_DATA1_PORT   LCD_PORT     /**< port for 4bit data bit 1 */
+  #define LCD_DATA2_PORT   LCD_PORT     /**< port for 4bit data bit 2 */
+  #define LCD_DATA3_PORT   LCD_PORT     /**< port for 4bit data bit 3 */
+  #define LCD_DATA0_PIN    4            /**< pin for 4bit data bit 0  */
+  #define LCD_DATA1_PIN    5            /**< pin for 4bit data bit 1  */
+  #define LCD_DATA2_PIN    6            /**< pin for 4bit data bit 2  */
+  #define LCD_DATA3_PIN    7            /**< pin for 4bit data bit 3  */
+  #define LCD_RS_PORT      LCD_PORT     /**< port for RS line         */
+  #define LCD_RS_PIN       2            /**< pin  for RS line         */
+  #define LCD_E_PORT       LCD_PORT     /**< port for Enable line     */
+  #define LCD_E_PIN        3            /**< pin  for Enable line     */
+  #define LCD_RW_PORT      PORTD        /**< port for RW line         */
+  #define LCD_RW_PIN       7            /**< pin  for RW line         */
 #else
-#error "external data memory interface not available for this device, use 4-bit IO port mode"
-
+  #define LCD_E_PORT       LCD_PORT     /**< port for Enable line     */
 #endif
+
+/* #elif defined(__AVR_AT90S4414__) || defined(__AVR_AT90S8515__) || defined(__AVR_ATmega64__) || \ */
+/*       defined(__AVR_ATmega8515__)|| defined(__AVR_ATmega103__) || defined(__AVR_ATmega128__) || \ */
+/*       defined(__AVR_ATmega161__) || defined(__AVR_ATmega162__) */
+/* /\* */
+/*  *  memory mapped mode is only supported when the device has an external data memory interface */
+/*  *\/ */
+/* #define LCD_IO_DATA      0xC000    /\* A15=E=1, A14=RS=1                 *\/ */
+/* #define LCD_IO_FUNCTION  0x8000    /\* A15=E=1, A14=RS=0                 *\/ */
+/* #define LCD_IO_READ      0x0100    /\* A8 =R/W=1 (R/W: 1=Read, 0=Write   *\/ */
+/* #else */
+/* #error "external data memory interface not available for this device, use 4-bit IO port mode" */
+
+/* #endif */
 
 
 /**

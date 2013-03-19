@@ -5,9 +5,6 @@
 //Possible improvements:
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
-//#define U1000
-#define HR320
-
 #define UART_BAUD_RATE 57600 //uart speed
 
 #include <avr/io.h>
@@ -15,17 +12,11 @@
 #include <stdlib.h> //for LCD
 #include <avr/pgmspace.h>  //for LCD //for uart
 #include <util/delay.h>
+#include <string.h>
 #include "def.h" //common definitions
 #include "lcd.h" //for LCD
 #include "uartParser.h"
 #include "uart.h"
-#include <string.h>
-
-#define HIGH 1 //logic level high
-#define LOW 0 //logic level low
-
-
-//#define HighPulse  // uncomment if pulses are HIGH. Stay commented if pulses are LOW.
 
 long Position = 0; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)

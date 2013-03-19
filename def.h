@@ -1,3 +1,6 @@
+//#define U1000
+#define HR320
+
 //see http://www.avr-asm-tutorial.net/avr_en/beginner/PDETAIL.html#IOPORTS                                                    
 #define PORT(x) (*(&x - 0))      /* address of data register of port x */
 #define DDR(x) (*(&x - 1))      /* address of data direction register of port x */
@@ -20,3 +23,5 @@
 #define CHAR_NEWLINE '\n'
 #define CHAR_RETURN '\r'
 #define RETURN_NEWLINE "\r\n"
+#define HIGH 1 //logic level high
+#define LOW 0 //logic level low

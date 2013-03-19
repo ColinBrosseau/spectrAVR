@@ -7,13 +7,14 @@
 #                4.07 or greater).
 # make program = Download the hex file to the device, using avrdude.  Please
 #                customize the avrdude settings below first!
+# make programbut = Program with butterfly bootloader
 # make filename.s = Just compile filename.c into the assembler code only
 #
 # To rebuild project do "make clean" then "make all".
 
 # MCU name
 MCU = atmega16
-F_CPU=3686400UL
+F_CPU = 3686400UL
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
