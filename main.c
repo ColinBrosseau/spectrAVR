@@ -5,6 +5,8 @@
 //Possible improvements:
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
+//#define ADC
+
 #define UART_BAUD_RATE 57600 //uart speed
 
 #include <avr/io.h>
@@ -30,6 +32,11 @@ unsigned char Moving = 0; //set to 1 if spectrometer is moving
 //for command from uart
 #define bufferLength 20
 char command_in[bufferLength];
+
+#if defined(ADC)
+unsigned int ADC_read(unsigned char);
+unsigned int adc; //output from ADC
+#endif
 
 //spectrometer characteristics
 #if defined(U1000)
@@ -69,12 +76,14 @@ char command_in[bufferLength];
   #define PULSES_UP PD5 // Spectrometer pulses pin on PD5 
   #define PULSES_DOWN PD6 // Spectrometer direction pin on PD6 //will have to change to int2 pin
   #define LED PA0 // Display led pin on PA0 
+  #define PHOTODIODE1 PA1 // Voltage Input related to photodiode
 
   #define PORT_INPUT_PULSES_UP PORTD //PORT of INPUT_PULSES_UP pin
   #define PORT_INPUT_PULSES_DOWN PORTD //PORT of INPUT_PULSES_DOWN pin
   #define PORT_PULSES_UP PORTD //PORT of PULSES_UP pin
   #define PORT_PULSES_DOWN PORTD //PORT of PULSES_DOWN pin //will have to change to int2 pin
   #define PORT_LED PORTA //PORT of led pin
+  #define PORT_PHOTODIODE1 PORTA // PORT of Input related to photodiode
 
   unsigned char IncreasePosition;
 #endif
@@ -155,6 +164,11 @@ void process_command() {
     i = N; //suppose motor is already moving at full speed
     switchToDo = N;
   }
+ else if(strcasestr(command_in,"POWER1") != NULL){
+   //adc = ADC_read(1);
+   //print_value_int("POWER1", adc);
+ }
+
 
   memset(command_in, 0, bufferLength); //erase the command
 }
@@ -166,7 +180,7 @@ void initUART(void) {
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   sei(); //enable interrupt, since UART library is interrupt controlled
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("SpectrAVR Version 1.98a"); uart_puts("\r\n");
+  uart_puts("SpectrAVR Version 1.98b"); uart_puts("\r\n");
 }
 
 //initialise LCD display
@@ -174,7 +188,7 @@ void initLCD(void) {
   //LCD
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.98a"); /* put string to display (line 1) with linefeed */
+  lcd_puts("SpectrAVR 1.98b"); /* put string to display (line 1) with linefeed */
 }
 
 //initialise IO on uC
@@ -209,6 +223,10 @@ void initIO(void) {
   GICR |= _BV(INT0);  //Enable INT0
   MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on raising edge of INT0 //works for mega16 (manual p. 69)
   sei();//turn on interrupts
+
+  //Initialization of ADC
+  //ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
+  //ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
 }
 #elif defined(HR320)
 void initIO(void) {
@@ -252,15 +270,34 @@ void initIO(void) {
   MCUCSR |= _BV(ISC2) ; //Trigger on raising edge of INT2 //works for mega16 (manual p. 69)
   sei();//turn on interrupts
 
-  // input pins
-  IN(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN); // Set INPUT_PULSES_DOWN pin as input
-  //!!! activate interrupt
+  //Initialization of ADC
+  //ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
+  //ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
 }
 #endif
 
 
+/* unsigned int ADC_read(unsigned char ch) */
+/* { */
+/*   ch= ch & 0b00000111;	// channel must be b/w 0 to 7 */
+/*   ADMUX |= ch;	// selecting channel */
+  
+/*   ADCSRA|=(1<<ADSC);	// start conversion */
+/*   while(!(ADCSRA & (1<<ADIF)));	// waiting for ADIF, conversion complete */
+/*   ADCSRA|=(1<<ADIF);	// clearing of ADIF, it is done by writing 1 to it */
+ 
+/*   return (ADC); */
+/* } */
+
+
 char buffer[16];
+
+#if defined(U1000)
+ char bufferLCD[20];
+#elif defined(HR320)
 char bufferLCD[16];
+#endif
+
 
 int main(void) {
   //clean command input from outside world (uart) buffer
@@ -280,6 +317,13 @@ int main(void) {
   switchToDo = 0;
   Position = 0;
 
+  //short j=1;
+
+  itoa(speedLow, buffer, 10);
+  uart_puts(buffer);
+  itoa(speedFast, buffer, 10);
+  uart_puts(buffer);
+
   while(1) {
     _delay_ms(25);
     TOGL(PORT_LED,LED); // toggle LED
@@ -290,6 +334,22 @@ int main(void) {
     lcd_gotoxy(0,1);
     lcd_puts(bufferLCD);
     lcd_puts(" A");
+    // LCD Power
+    //if (switchToDo == 0) {
+    // if (j-- == 0){
+    //j = 13;
+    //	adc = ADC_read(1);
+    //	itoa(adc, bufferLCD, 10);
+    //	lcd_gotoxy(12,1); //erase
+    //	lcd_puts("    ");   
+    //	lcd_gotoxy(12,1);
+    //	lcd_puts(bufferLCD);
+    //}
+    //}
+    //else {
+    //lcd_gotoxy(12,1); //erase
+    //lcd_puts("    ");        
+    //}
     // process commands from uart
     process_uart();
     process_command();
@@ -307,12 +367,14 @@ int main(void) {
   }
 }
 
-int calculate_period(int i) {
+void calculate_period(int i) {
   //period:
   if (i<N) //acceleration
-    return speedLow - (speedLow-speedFast)/N * i;
-  if (switchToDo < N*2) //deceleration
-    return speedLow - (speedLow-speedFast)/N * switchToDo/2;
+    period = speedLow - (speedLow-speedFast)/N * i;
+  else if (switchToDo < N*2) //deceleration
+    period =  speedLow - (speedLow-speedFast)/N * switchToDo/2;
+  else
+    period = speedFast;
 }
 
 //Pulses generation
@@ -321,7 +383,7 @@ ISR (TIMER1_COMPA_vect) {
   if (switchToDo > 0) {
     if (READ(PORT_PULSES,PULSES)) { //so its high (has to be written like that)
       i++;
-      period = calculate_period(i);
+      calculate_period(i);
       OCR1A = pulseDuration;      // Duration of the pulses
       CLR(PORT_PULSES,PULSES); // PULSE pin goes low 
     }
@@ -335,7 +397,7 @@ ISR (TIMER1_COMPA_vect) {
     if (IncreasePosition) {
       if (READ(PORT_PULSES_UP,PULSES_UP) == LOW) {  
 	i++;
-	period = calculate_period(i);
+	calculate_period(i);
 	OCR1A = pulseDuration;      // Duration of the pulses
 	SET(PORT_PULSES_UP,PULSES_UP);
       }

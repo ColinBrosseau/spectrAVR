@@ -51,6 +51,16 @@ void print_value (char *id, double value) {
   uart_puts(RETURN_NEWLINE);
 }
 
+void print_value_int (char *id, int value) {
+  char buffer[bufferLength];
+  itoa(value, buffer, 10);
+  uart_puts(id);
+  uart_putc('=');
+  uart_puts(buffer);
+  uart_puts(RETURN_NEWLINE);
+}
+
+
 /* void uart_ok() { */
 /*   uart_puts("OK"); */
 /*   uart_puts(RETURN_NEWLINE); */

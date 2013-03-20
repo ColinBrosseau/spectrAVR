@@ -14,7 +14,9 @@
 
 # MCU name
 MCU = atmega16
-F_CPU = 3686400UL
+
+#F_CPU = 3686400UL
+F_CPU = 12000000UL
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
