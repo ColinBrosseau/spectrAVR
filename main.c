@@ -5,7 +5,7 @@
 //Possible improvements:
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
-//#define ADC
+#define LCD
 
 #define UART_BAUD_RATE 57600 //uart speed
 
@@ -24,8 +24,6 @@ long Position = 0; //Position of the motor (steps)
 double Position_A; //Position of the spetrometer (Angtroms)
 unsigned long switchToDo = 0; //number of PULSES state change remaining
 int pulseDuration; //duration of the pulse (timer units)
-volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
-                             //this variable needs to be volatile because it is changed by an interrupt function
 volatile unsigned long i = 0;//used for pulse generation
 unsigned char Moving = 0; //set to 1 if spectrometer is moving
 
@@ -46,6 +44,8 @@ unsigned int adc; //output from ADC
   int speedLow = 11000; //minimum speed (actually period)
   int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
   #define DUTY 10 //duty cycle for pulses (in %)
+  volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
+                             //this variable needs to be volatile because it is changed by an interrupt function
 
   #define INPUT_PULSES PD2 // Define INPUT_PULSE pin on PD2 (Int0)
   #define INPUT_DIRECTION PD4 // Define INPUT_DIRECTION pin on PD4 
@@ -66,22 +66,24 @@ unsigned int adc; //output from ADC
   #define step2position 10 //convert number of steps in physical position (here Angstroms)
   #define HighPulse  // Pulses are HIGH. 
   //pulses speed and acceleration
-  int N = 50; //number of pulses to fully accelerate. 50 semble correct
-  int speedLow = 11000; //minimum speed (actually period)
-  int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
-  #define DUTY 10 //duty cycle for pulses (in %)
+  int N = 500; //number of pulses to fully accelerate. 50 semble correct
+  int speedLow = 64000; //minimum speed (actually period) 64000 = 187 Hz
+  int speedFast = 40000; //maxmimum speed (actually period). 40000 = 300 Hz
+  #define DUTY 20 //duty cycle for pulses (in %)
+  volatile int period = 30000; //duration between pulses (timer units) (16000 = 1 ms)
+                             //this variable needs to be volatile because it is changed by an interrupt function
 
   #define INPUT_PULSES_UP PD2 // Define INPUT_PULSE pin on PD2 (Int0)
-  #define INPUT_PULSES_DOWN PD4 // Define INPUT_DIRECTION pin on PD4 
+  #define INPUT_PULSES_DOWN PB2 // Define INPUT_DIRECTION pin on PD4 
   #define PULSES_UP PD5 // Spectrometer pulses pin on PD5 
-  #define PULSES_DOWN PD6 // Spectrometer direction pin on PD6 //will have to change to int2 pin
+  #define PULSES_DOWN PB1 // Spectrometer direction pin on PD6 //will have to change to int2 pin
   #define LED PA0 // Display led pin on PA0 
   #define PHOTODIODE1 PA1 // Voltage Input related to photodiode
 
   #define PORT_INPUT_PULSES_UP PORTD //PORT of INPUT_PULSES_UP pin
-  #define PORT_INPUT_PULSES_DOWN PORTD //PORT of INPUT_PULSES_DOWN pin
+  #define PORT_INPUT_PULSES_DOWN PORTB //PORT of INPUT_PULSES_DOWN pin
   #define PORT_PULSES_UP PORTD //PORT of PULSES_UP pin
-  #define PORT_PULSES_DOWN PORTD //PORT of PULSES_DOWN pin //will have to change to int2 pin
+  #define PORT_PULSES_DOWN PORTB //PORT of PULSES_DOWN pin //will have to change to int2 pin
   #define PORT_LED PORTA //PORT of led pin
   #define PORT_PHOTODIODE1 PORTA // PORT of Input related to photodiode
 
@@ -109,78 +111,13 @@ double parse_assignment (char input[bufferLength]) {
   return atof(cmdValue);
 }
 
-// Process commands get from uart
-void process_command() {
-  long Position2go;
-  double Position2go_A;
-
-  if(strcasestr(command_in,"A") != NULL){
-    if(strcasestr(command_in,"?") != NULL)
-      print_value("A", Position_A);
-    else {
-      Position_A = parse_assignment(command_in);
-      Position = Position_A*step2position;
-      uart_ok();
-    }
-  }
-  else if(strcasestr(command_in,"GOTO") != NULL){
-
-    Position2go_A = parse_assignment(command_in);
-    Position2go = Position2go_A*step2position;
-
-#if defined(U1000)
-    OUT(PORT_PULSES,PULSES);
-    OUT(PORT_DIRECTION,DIRECTION);
-#elif defined(HR320)
-    OUT(PORT_INPUT_PULSES_UP,INPUT_PULSES_UP);
-    OUT(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN);
-#endif
-
-    i=0;
-    backlash();
-
-    i=0;
-    if (Position2go > Position) {
-      switchToDo = Position2go - Position;
-#if defined(U1000)
-      AVANCE;
-#elif defined(HR320)
-      IncreasePosition = 1;
-#endif
-    }
-    else {
-      switchToDo = - Position2go + Position;
-#if defined(U1000)
-      RECULE;
-#elif defined(HR320)
-      IncreasePosition = 0;     
-#endif
-      
-    }
-    Moving = 1;
-
-  }
-  else if(strcasestr(command_in,"STOP") != NULL){
-    i = N; //suppose motor is already moving at full speed
-    switchToDo = N;
-  }
- else if(strcasestr(command_in,"POWER1") != NULL){
-   //adc = ADC_read(1);
-   //print_value_int("POWER1", adc);
- }
-
-
-  memset(command_in, 0, bufferLength); //erase the command
-}
-
-
 //initialise UART communication
 void initUART(void) {
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   sei(); //enable interrupt, since UART library is interrupt controlled
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("SpectrAVR Version 1.98b"); uart_puts("\r\n");
+  uart_puts("SpectrAVR Version 1.98c"); uart_puts("\r\n");
 }
 
 //initialise LCD display
@@ -188,7 +125,7 @@ void initLCD(void) {
   //LCD
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.98b"); /* put string to display (line 1) with linefeed */
+  lcd_puts("SpectrAVR 1.98c"); /* put string to display (line 1) with linefeed */
 }
 
 //initialise IO on uC
@@ -250,24 +187,16 @@ void initIO(void) {
    
   //Turn on INPUT_PULSE_UP pin interrupt on falling edge.
   IN(PORT_INPUT_PULSES_UP,INPUT_PULSES_UP); // Set INPUT_PULSES_UP pin as input
-  /* #if defined(__AVR_ATmega8__) */
-  /* GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2) */
-  /* MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) */
-  /* #else */
   GICR |= _BV(INT0);  //Enable INT0
-  MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger raising edge of INT0 //works for mega16 (manual p. 69)
-  //MCUCR |= _BV(ISC01) ; //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
+  //MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger raising edge of INT0 //works for mega16 (manual p. 69)
+  MCUCR |= _BV(ISC01) ; //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
   sei();//turn on interrupts
 
   //Turn on INPUT_PULSE_DOWN pin interrupt on falling edge.
   IN(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN); // Set INPUT_PULSES_DOWN pin as input
-  /* #if defined(__AVR_ATmega8__) */
-  /* GIMSK |= _BV(INT0);  //Enable INT0, Pin PD2 (arduino digital 2) */
-  /* MCUCR |= _BV(ISC01); //Trigger on falling edge of INT0 //works for mega8 (manual p. 66) */
-  /* #else */
   GICR |= _BV(INT2);  //Enable INT2
-  //MCUCR |= _BV(ISC01) | _BV(ISC00); //Trigger on falling edge of INT0 //works for mega16 (manual p. 69)
-  MCUCSR |= _BV(ISC2) ; //Trigger on raising edge of INT2 //works for mega16 (manual p. 69)
+  //MCUCSR |= _BV(ISC2) ; //Trigger on raising (?) edge of INT2 //works for mega16 
+  MCUCSR &= ~_BV(ISC2) ; //Trigger on falling (?) edge of INT2 //works for mega16 
   sei();//turn on interrupts
 
   //Initialization of ADC
@@ -304,7 +233,9 @@ int main(void) {
   memset(command_in, 0, bufferLength);
 
   initUART(); //initialise UART communication
+#if defined(LCD)
   initLCD(); //Initialise LCD display
+#endif
 
   pulseDuration = period*DUTY/100;   // set pulseDuration
     
@@ -319,21 +250,25 @@ int main(void) {
 
   //short j=1;
 
-  itoa(speedLow, buffer, 10);
-  uart_puts(buffer);
-  itoa(speedFast, buffer, 10);
-  uart_puts(buffer);
+  //itoa(speedLow, buffer, 10);
+  //uart_puts(buffer);
+  //uart_puts("\r\n");
+  //itoa(speedFast, buffer, 10);
+  //uart_puts(buffer);
+  //uart_puts("\r\n");
 
   while(1) {
     _delay_ms(25);
     TOGL(PORT_LED,LED); // toggle LED
     //TOGL(PORT_PULSES,PULSES); //for testing
-    // LCD display
     Position_A = (double)Position/step2position;
+#if defined(LCD)
+    // LCD display
     dtostrf(Position_A,9,3,bufferLCD); //this line takes a lot of memory! //could be a good idea to remplace this code.
     lcd_gotoxy(0,1);
     lcd_puts(bufferLCD);
     lcd_puts(" A");
+#endif
     // LCD Power
     //if (switchToDo == 0) {
     // if (j-- == 0){
@@ -359,8 +294,8 @@ int main(void) {
       IN(PORT_PULSES,PULSES);
       IN(PORT_DIRECTION,DIRECTION);
 #elif defined(HR320)
-      IN(PORT_PULSES_UP,PULSES_UP);
-      IN(PORT_PULSES_DOWN,PULSES_DOWN);
+      //IN(PORT_PULSES_UP,PULSES_UP);
+      //IN(PORT_PULSES_DOWN,PULSES_DOWN);
 #endif
 
     }
@@ -379,6 +314,7 @@ void calculate_period(int i) {
 
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
+  //Important note: don put any uart_put() here. It takes too much time and freeze the uC)
 #if defined(U1000)
   if (switchToDo > 0) {
     if (READ(PORT_PULSES,PULSES)) { //so its high (has to be written like that)
@@ -394,28 +330,29 @@ ISR (TIMER1_COMPA_vect) {
   }
 #elif defined(HR320)
   if (switchToDo > 0) {
-    if (IncreasePosition) {
+    if (IncreasePosition != NULL) {
       if (READ(PORT_PULSES_UP,PULSES_UP) == LOW) {  
-	i++;
+ 	i++;
 	calculate_period(i);
 	OCR1A = pulseDuration;      // Duration of the pulses
 	SET(PORT_PULSES_UP,PULSES_UP);
       }
       else {
+	//uart_puts("is high...\n\r");
 	OCR1A = period - pulseDuration;     // Duration of inter-pulses
 	CLR(PORT_PULSES_UP,PULSES_UP);
       }
     }
     else {
-      if (READ(PORT_PULSES_UP,PULSES_UP) == LOW) {  
+      if (READ(PORT_PULSES_DOWN,PULSES_DOWN) == LOW) {  
 	i++;
-	period = calculate_period(i);
+	calculate_period(i);
 	OCR1A = pulseDuration;      // Duration of the pulses
-	SET(PORT_PULSES_UP,PULSES_UP);
+	SET(PORT_PULSES_DOWN,PULSES_DOWN);
       }
       else {
 	OCR1A = period - pulseDuration;     // Duration of inter-pulses
-	CLR(PORT_PULSES_UP,PULSES_UP);
+	CLR(PORT_PULSES_DOWN,PULSES_DOWN);
       }
     }
   }
@@ -447,6 +384,17 @@ ISR(INT0_vect) {
     switchToDo -= 1;
 }
 
+//count pulses (input) so it knows where are the motors
+ISR(INT2_vect) {
+
+#if defined(HR320)
+  Position -= 1;
+  if (switchToDo > 0)
+    switchToDo -= 1;
+#endif
+
+}
+
 void backlash(void) {
 #if defined(U1000)
   //revient sur ses pas
@@ -467,6 +415,7 @@ void backlash(void) {
     IncreasePosition = 1;
   }
   switchToDo = 5;
+
   _delay_ms(100);
   if (IncreasePosition) {
     IncreasePosition = 0;
@@ -478,3 +427,84 @@ void backlash(void) {
 #endif
 }
 
+// Process commands get from uart
+void process_command() {
+  long Position2go;
+  double Position2go_A;
+
+  if(strcasestr(command_in,"A") != NULL){
+    if(strcasestr(command_in,"?") != NULL){
+      uart_puts(":A? "); uart_puts("\r\n");
+      print_value("A", Position_A);
+    }
+    else {
+      uart_puts(":A "); uart_puts("\r\n");
+      Position_A = parse_assignment(command_in);
+      Position = Position_A*step2position;
+      uart_ok();
+    }
+  }
+
+  else if(strcasestr(command_in,"GOTO") != NULL){
+    //uart_puts(":GOTO \r\n"); 
+    Position2go_A = parse_assignment(command_in);
+    Position2go = Position2go_A*step2position;
+
+    uart_puts(":GOTO a \r\n"); 
+
+#if defined(U1000)
+    OUT(PORT_PULSES,PULSES);
+    OUT(PORT_DIRECTION,DIRECTION);
+#elif defined(HR320)
+    //OUT(PORT_INPUT_PULSES_UP,INPUT_PULSES_UP);
+    //OUT(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN);
+#endif
+
+    i=0;
+    backlash();
+
+    i=0;
+
+    //uart_puts(":GOTO aa \r\n"); 
+    //dtostrf(Position2go - Position,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    //uart_puts(buffer);
+    //uart_puts(":GOTO b \r\n"); 
+
+    if (Position2go > Position) {
+      switchToDo = Position2go - Position;
+#if defined(U1000)
+      AVANCE;
+#elif defined(HR320)
+      IncreasePosition = 1;
+#endif
+    }
+    else {
+      switchToDo = - Position2go + Position;
+#if defined(U1000)
+      RECULE;
+#elif defined(HR320)
+      IncreasePosition = 0;     
+#endif     
+    }
+
+      //dtostrf(switchToDo,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    //uart_puts("switchToDo : ");
+    //uart_puts(buffer);
+
+    Moving = 1;
+
+  }
+
+  else if(strcasestr(command_in,"STOP") != NULL){
+    uart_puts(":STOP "); uart_puts("\r\n");
+    i = N; //suppose motor is already moving at full speed
+    switchToDo = N;
+  }
+
+  else if(strcasestr(command_in,"POWER1") != NULL){
+    uart_puts(":POWER1? "); uart_puts("\r\n");
+   //adc = ADC_read(1);
+   //print_value_int("POWER1", adc);
+  }
+  memset(command_in, 0, bufferLength); //erase the command
+}
