@@ -117,7 +117,7 @@ void initUART(void) {
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   sei(); //enable interrupt, since UART library is interrupt controlled
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("SpectrAVR Version 1.98c"); uart_puts("\r\n");
+  uart_puts("SpectrAVR Version 1.98d"); uart_puts("\r\n");
 }
 
 //initialise LCD display
@@ -125,7 +125,7 @@ void initLCD(void) {
   //LCD
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.98c"); /* put string to display (line 1) with linefeed */
+  lcd_puts("SpectrAVR 1.98d"); /* put string to display (line 1) with linefeed */
 }
 
 //initialise IO on uC
@@ -182,7 +182,8 @@ void initIO(void) {
   OCR1A = 50000;
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match
-  TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer  //!!! set correct prescaler
+  //TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer (manual p. 113)
+  TCCR1B |= (1 << CS11); // set prescaler to 8 and start the timer (manual p. 113)
   sei(); // enable interrupts
    
   //Turn on INPUT_PULSE_UP pin interrupt on falling edge.
@@ -446,36 +447,31 @@ void process_command() {
   }
 
   else if(strcasestr(command_in,"GOTO") != NULL){
-    //uart_puts(":GOTO \r\n"); 
+    uart_puts(":GOTO \r\n"); 
     Position2go_A = parse_assignment(command_in);
     Position2go = Position2go_A*step2position;
 
-    uart_puts(":GOTO a \r\n"); 
 
 #if defined(U1000)
     OUT(PORT_PULSES,PULSES);
     OUT(PORT_DIRECTION,DIRECTION);
 #elif defined(HR320)
-    //OUT(PORT_INPUT_PULSES_UP,INPUT_PULSES_UP);
-    //OUT(PORT_INPUT_PULSES_DOWN,INPUT_PULSES_DOWN);
+    //OUT(PORT_PULSES_UP,PULSES_UP);
+    //OUT(PORT_PULSES_DOWN,PULSES_DOWN);
 #endif
 
     i=0;
     backlash();
 
     i=0;
-
-    //uart_puts(":GOTO aa \r\n"); 
-    //dtostrf(Position2go - Position,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    //uart_puts(buffer);
-    //uart_puts(":GOTO b \r\n"); 
-
     if (Position2go > Position) {
       switchToDo = Position2go - Position;
 #if defined(U1000)
       AVANCE;
 #elif defined(HR320)
       IncreasePosition = 1;
+      OUT(PORT_PULSES_UP,PULSES_UP);
+      IN(PORT_PULSES_DOWN,PULSES_DOWN);
 #endif
     }
     else {
@@ -484,15 +480,11 @@ void process_command() {
       RECULE;
 #elif defined(HR320)
       IncreasePosition = 0;     
+      IN(PORT_PULSES_UP,PULSES_UP);
+      OUT(PORT_PULSES_DOWN,PULSES_DOWN);
 #endif     
     }
-
-      //dtostrf(switchToDo,9,3,buffer); //this line takes a lot of memory! //could be a good idea to remplace this code.
-    //uart_puts("switchToDo : ");
-    //uart_puts(buffer);
-
     Moving = 1;
-
   }
 
   else if(strcasestr(command_in,"STOP") != NULL){
