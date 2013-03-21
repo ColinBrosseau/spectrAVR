@@ -9,6 +9,8 @@
 
 #define UART_BAUD_RATE 57600 //uart speed
 
+#define Version "1.98e" //firmware version
+
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
 #include <stdlib.h> //for LCD
@@ -62,6 +64,9 @@ unsigned int adc; //output from ADC
   #define AVANCE CLR(PORT_DIRECTION,DIRECTION); //set pin to increase wavelength
   #define RECULE SET(PORT_DIRECTION,DIRECTION); //set pin to decrease wavelength
 
+  #define Ndigit 3 //number of digits for wavelength display
+  #define Ncharacters 9 //number of characters for wavelength display
+
 #elif defined(HR320)
   #define step2position 10 //convert number of steps in physical position (here Angstroms)
   #define HighPulse  // Pulses are HIGH. 
@@ -86,6 +91,9 @@ unsigned int adc; //output from ADC
   #define PORT_PULSES_DOWN PORTB //PORT of PULSES_DOWN pin //will have to change to int2 pin
   #define PORT_LED PORTA //PORT of led pin
   #define PORT_PHOTODIODE1 PORTA // PORT of Input related to photodiode
+
+  #define Ndigit 1 //number of digits for wavelength
+  #define Ncharacters 7 //number of characters for wavelength display
 
   unsigned char IncreasePosition;
 #endif
@@ -116,8 +124,16 @@ void initUART(void) {
   //  Initialize UART library
   uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
   sei(); //enable interrupt, since UART library is interrupt controlled
+  uart_puts("\r\n");
   uart_puts("-----"); uart_puts("\r\n");
-  uart_puts("SpectrAVR Version 1.98d"); uart_puts("\r\n");
+  uart_puts("SpectrAVR ");
+  uart_puts(Version); 
+#if defined(U1000)
+  uart_puts(" U1000"); 
+#elif defined(HR320)
+  uart_puts(" HR320"); 
+#endif
+  uart_puts("\r\n");
 }
 
 //initialise LCD display
@@ -125,7 +141,14 @@ void initLCD(void) {
   //LCD
   lcd_init(LCD_DISP_ON); /* initialize display, cursor off */
   lcd_clrscr(); /* clear display and home cursor */
-  lcd_puts("SpectrAVR 1.98d"); /* put string to display (line 1) with linefeed */
+  lcd_puts("SpectrAVR ");
+  lcd_puts(Version); /* put string to display (line 1) with linefeed */
+#if defined(U1000)
+  lcd_puts("U"); 
+#elif defined(HR320)
+  lcd_puts("H"); 
+#endif
+
 }
 
 //initialise IO on uC
@@ -182,8 +205,8 @@ void initIO(void) {
   OCR1A = 50000;
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match
-  //TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer (manual p. 113)
-  TCCR1B |= (1 << CS11); // set prescaler to 8 and start the timer (manual p. 113)
+  TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer (manual p. 113)
+  //TCCR1B |= (1 << CS11); // set prescaler to 8 and start the timer (manual p. 113)
   sei(); // enable interrupts
    
   //Turn on INPUT_PULSE_UP pin interrupt on falling edge.
@@ -265,7 +288,7 @@ int main(void) {
     Position_A = (double)Position/step2position;
 #if defined(LCD)
     // LCD display
-    dtostrf(Position_A,9,3,bufferLCD); //this line takes a lot of memory! //could be a good idea to remplace this code.
+    dtostrf(Position_A,Ncharacters,Ndigit,bufferLCD); //this line takes a lot of memory! //could be a good idea to remplace this code.
     lcd_gotoxy(0,1);
     lcd_puts(bufferLCD);
     lcd_puts(" A");
