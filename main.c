@@ -3,13 +3,20 @@
 //based on https://sites.google.com/site/qeewiki/books/avr-guide/timer-on-the-atmega8
 // 
 //Possible improvements:
+//    Remove RW pin for LCD usage (need to change lcd.h, lcd.c) (Useless to read from lcd)
+//    Remove bug "(up) number\r" same as "A number\r"
+//    Remove bug "(up)number\r" same as "A 0\r"
+//    Merge pin assigment for lcd for U1000 and HR320
+//    Merge pin assigment for U1000 and HR320
+//    Backlash doesn't work (?) for HR320
+//    put all spectrometers code in firmware. Select at boot from jumpers or command selectable? Auto detect?
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
 
 #define LCD
 
 #define UART_BAUD_RATE 57600 //uart speed
 
-#define Version "1.98e" //firmware version
+#define Version "1.98f" //firmware version
 
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
@@ -148,7 +155,6 @@ void initLCD(void) {
 #elif defined(HR320)
   lcd_puts("H"); 
 #endif
-
 }
 
 //initialise IO on uC
@@ -242,7 +248,6 @@ void initIO(void) {
 /*   return (ADC); */
 /* } */
 
-
 char buffer[16];
 
 #if defined(U1000)
@@ -271,15 +276,6 @@ int main(void) {
 
   switchToDo = 0;
   Position = 0;
-
-  //short j=1;
-
-  //itoa(speedLow, buffer, 10);
-  //uart_puts(buffer);
-  //uart_puts("\r\n");
-  //itoa(speedFast, buffer, 10);
-  //uart_puts(buffer);
-  //uart_puts("\r\n");
 
   while(1) {
     _delay_ms(25);
@@ -326,6 +322,7 @@ int main(void) {
   }
 }
 
+
 void calculate_period(int i) {
   //period:
   if (i<N) //acceleration
@@ -335,6 +332,7 @@ void calculate_period(int i) {
   else
     period = speedFast;
 }
+
 
 //Pulses generation
 ISR (TIMER1_COMPA_vect) {
@@ -390,6 +388,7 @@ ISR (TIMER1_COMPA_vect) {
   }
 }
 
+
 //count pulses (input) so it knows where are the motors
 ISR(INT0_vect) {
 
@@ -408,6 +407,7 @@ ISR(INT0_vect) {
     switchToDo -= 1;
 }
 
+
 //count pulses (input) so it knows where are the motors
 ISR(INT2_vect) {
 
@@ -418,6 +418,7 @@ ISR(INT2_vect) {
 #endif
 
 }
+
 
 void backlash(void) {
 #if defined(U1000)
@@ -451,6 +452,7 @@ void backlash(void) {
 #endif
 }
 
+
 // Process commands get from uart
 void process_command() {
   long Position2go;
@@ -473,7 +475,6 @@ void process_command() {
     uart_puts(":GOTO \r\n"); 
     Position2go_A = parse_assignment(command_in);
     Position2go = Position2go_A*step2position;
-
 
 #if defined(U1000)
     OUT(PORT_PULSES,PULSES);
