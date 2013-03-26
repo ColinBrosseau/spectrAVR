@@ -15,11 +15,11 @@
 //    Merge pin assigment for lcd for U1000 and HR320
 
 #define LCD
-#define ADC
+//#define ADCPRESENT
 
 #define UART_BAUD_RATE 57600 //uart speed
 
-#define Version "1.98f" //firmware version
+#define Version "1.98g" //firmware version
 
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
@@ -43,7 +43,7 @@ unsigned char Moving = 0; //set to 1 if spectrometer is moving
 #define bufferLength 20
 char command_in[bufferLength];
 
-#if defined(ADC)
+#if defined(ADCPRESENT)
 unsigned int ADC_read(unsigned char);
 unsigned int adc; //output from ADC
 unsigned short j; //counter (delay) for ADC print on LCD
@@ -239,7 +239,7 @@ void initIO(void) {
 }
 #endif
 
-#if defined(ADC)
+#if defined(ADCPRESENT)
 unsigned int ADC_read(unsigned char ch)
 {
   ch= ch & 0b00000111;	// channel must be b/w 0 to 7
@@ -294,7 +294,7 @@ int main(void) {
     lcd_puts(bufferLCD);
     lcd_puts(" A");
 #endif
-#if defined(ADC)
+#if defined(ADCPRESENT)
     // LCD Power
     if (switchToDo == 0) {
       if (j-- == 0){
@@ -523,7 +523,7 @@ void process_command() {
     i = N; //suppose motor is already moving at full speed
     switchToDo = N;
   }
-#if defined(ADC)
+#if defined(ADCPRESENT)
   else if(strcasestr(command_in,"POWER1") != NULL){
     uart_puts(":POWER1? "); uart_puts("\r\n");
     adc = ADC_read(1);
