@@ -15,11 +15,11 @@
 //    Merge pin assigment for lcd for U1000 and HR320
 
 #define LCD
-#define ADC
+//#define ADCPRESENT
 
 #define UART_BAUD_RATE 57600 //uart speed
 
-#define Version "1.98f" //firmware version
+#define Version "1.98g" //firmware version
 
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
@@ -43,11 +43,15 @@ unsigned char Moving = 0; //set to 1 if spectrometer is moving
 #define bufferLength 20
 char command_in[bufferLength];
 
-#if defined(ADC)
-unsigned int ADC_read(unsigned char);
-unsigned int adc; //output from ADC
-unsigned short j; //counter (delay) for ADC print on LCD
+#if defined(ADCPRESENT)
+#error "Pas suppose etre defini"
 #endif
+
+/* #if defined(ADCPRESENT) */
+/* unsigned int ADC_read(unsigned char); */
+/* unsigned int adc; //output from ADC */
+/* unsigned short j; //counter (delay) for ADC print on LCD */
+/* #endif */
 
 //spectrometer characteristics
 #if defined(U1000)
@@ -195,8 +199,9 @@ void initIO(void) {
   sei();//turn on interrupts
 
   //Initialization of ADC
-  ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
-  ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
+  //adc_init();
+  //ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
+  //ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
 }
 #elif defined(HR320)
 void initIO(void) {
@@ -234,23 +239,45 @@ void initIO(void) {
   sei();//turn on interrupts
 
   //Initialization of ADC
-  ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
-  ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
+  //adc_init();
+  //ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
+  //ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
 }
 #endif
 
-#if defined(ADC)
-unsigned int ADC_read(unsigned char ch)
-{
-  ch= ch & 0b00000111;	// channel must be b/w 0 to 7
-  ADMUX |= ch;	// selecting channel
+
+#if defined(ADCPRESENT)
+
+/* void adc_init(void){ */
+/*  ADCSRA |= ((1<<ADPS2)|(1<<ADPS0));    //12Mhz/32 = 375Khz the ADC reference clock */
+/*  ADMUX |= (1<<REFS0);                //Voltage reference from Avcc (5v) */
+/*  ADCSRA |= (1<<ADEN);                //Turn on ADC */
+/*  ADCSRA |= (1<<ADSC);                //Do an initial conversion because this one is the slowest and to ensure that everything is up and running */
+/* } */
+
+/* uint16_t ADC_read(uint8_t channel){ */
+/*  ADMUX &= 0xF0;                    //Clear the older channel that was read */
+/*  ADMUX |= channel;                //Defines the new ADC channel to be read */
+/*  ADCSRA |= (1<<ADSC);                //Starts a new conversion */
+/*  while(ADCSRA & (1<<ADSC));            //Wait until the conversion is done */
+/*  return ADCW;                    //Returns the ADC value of the chosen channel */
+/* } */
+
+/* unsigned int ADC_read(unsigned char ch) */
+/* { */
+/*   ch= ch & 0b00000111;	// channel must be b/w 0 to 7 */
+/*   ADMUX |= ch;	// selecting channel */
   
-  ADCSRA|=(1<<ADSC);	// start conversion
-  while(!(ADCSRA & (1<<ADIF)));	// waiting for ADIF, conversion complete
-  ADCSRA|=(1<<ADIF);	// clearing of ADIF, it is done by writing 1 to it
+/*   ADCSRA|=(1<<ADSC);	// start conversion */
+/*   while(!(ADCSRA & (1<<ADIF)));	// waiting for ADIF, conversion complete */
+/*   ADCSRA|=(1<<ADIF);	// clearing of ADIF, it is done by writing 1 to it */
  
-  return (ADC);
-}
+/*   return (ADC); */
+/* } */
+
+#else
+/* void adc_init(void){ */
+/* } */
 #endif
 
 char buffer[16];
@@ -294,24 +321,24 @@ int main(void) {
     lcd_puts(bufferLCD);
     lcd_puts(" A");
 #endif
-#if defined(ADC)
-    // LCD Power
-    if (switchToDo == 0) {
-      if (j-- == 0){
-	j = 13;
-    	adc = ADC_read(1);
-    	itoa(adc, bufferLCD, 10);
-    	lcd_gotoxy(12,1); //erase
-    	lcd_puts("    ");   
-    	lcd_gotoxy(12,1);
-    	lcd_puts(bufferLCD);
-      }
-    }
-    else {
-    lcd_gotoxy(12,1); //erase
-    lcd_puts("    ");        
-    }
-#endif
+/* #if defined(ADCPRESENT) */
+/*     // LCD Power */
+/*     if (switchToDo < 1) { */
+/*       if (j-- == 0){ */
+/* 	j = 13; */
+/*     	adc = ADC_read(1); */
+/*     	itoa(adc, bufferLCD, 10); */
+/*     	lcd_gotoxy(12,1); //erase */
+/*     	lcd_puts("    ");    */
+/*     	lcd_gotoxy(12,1); */
+/*     	lcd_puts(bufferLCD); */
+/*       } */
+/*     } */
+/*     else { */
+/*       lcd_gotoxy(12,1); //erase */
+/*       lcd_puts("    ");         */
+/*     } */
+/* #endif */
     // process commands from uart
     process_uart();
     process_command();
@@ -523,12 +550,12 @@ void process_command() {
     i = N; //suppose motor is already moving at full speed
     switchToDo = N;
   }
-#if defined(ADC)
-  else if(strcasestr(command_in,"POWER1") != NULL){
-    uart_puts(":POWER1? "); uart_puts("\r\n");
-    adc = ADC_read(1);
-    print_value_int("POWER1", adc);
-  }
-#endif
+/* #if defined(ADCPRESENT) */
+/*   else if(strcasestr(command_in,"POWER1") != NULL){ */
+/*     uart_puts(":POWER1? "); uart_puts("\r\n"); */
+/*     adc = ADC_read(1); */
+/*     print_value_int("POWER1", adc); */
+/*   } */
+/* #endif */
   memset(command_in, 0, bufferLength); //erase the command
 }
