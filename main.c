@@ -4,15 +4,18 @@
 // 
 //Possible improvements:
 //    Remove RW pin for LCD usage (need to change lcd.h, lcd.c) (Useless to read from lcd)
-//    Remove bug "(up) number\r" same as "A number\r"
-//    Remove bug "(up)number\r" same as "A 0\r"
-//    Merge pin assigment for lcd for U1000 and HR320
 //    Merge pin assigment for U1000 and HR320
 //    Backlash doesn't work (?) for HR320
 //    put all spectrometers code in firmware. Select at boot from jumpers or command selectable? Auto detect?
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
+//Solved bugs:
+//    Remove bug "(up) number\r" same as "A number\r" : not a bug, a screen "feature"
+//    Remove bug "(up)number\r" same as "A 0\r" : not a bug, a screen "feature"
+//Done improvements
+//    Merge pin assigment for lcd for U1000 and HR320
 
 #define LCD
+#define ADC
 
 #define UART_BAUD_RATE 57600 //uart speed
 
@@ -43,6 +46,7 @@ char command_in[bufferLength];
 #if defined(ADC)
 unsigned int ADC_read(unsigned char);
 unsigned int adc; //output from ADC
+unsigned short j; //counter (delay) for ADC print on LCD
 #endif
 
 //spectrometer characteristics
@@ -191,8 +195,8 @@ void initIO(void) {
   sei();//turn on interrupts
 
   //Initialization of ADC
-  //ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
-  //ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
+  ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
+  ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
 }
 #elif defined(HR320)
 void initIO(void) {
@@ -230,23 +234,24 @@ void initIO(void) {
   sei();//turn on interrupts
 
   //Initialization of ADC
-  //ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
-  //ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
+  ADMUX=(1<<REFS0); // AVcc with external capacitor at AREF
+  ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS0); // Enable ADC and set Prescaler division factor as 32
 }
 #endif
 
-
-/* unsigned int ADC_read(unsigned char ch) */
-/* { */
-/*   ch= ch & 0b00000111;	// channel must be b/w 0 to 7 */
-/*   ADMUX |= ch;	// selecting channel */
+#if defined(ADC)
+unsigned int ADC_read(unsigned char ch)
+{
+  ch= ch & 0b00000111;	// channel must be b/w 0 to 7
+  ADMUX |= ch;	// selecting channel
   
-/*   ADCSRA|=(1<<ADSC);	// start conversion */
-/*   while(!(ADCSRA & (1<<ADIF)));	// waiting for ADIF, conversion complete */
-/*   ADCSRA|=(1<<ADIF);	// clearing of ADIF, it is done by writing 1 to it */
+  ADCSRA|=(1<<ADSC);	// start conversion
+  while(!(ADCSRA & (1<<ADIF)));	// waiting for ADIF, conversion complete
+  ADCSRA|=(1<<ADIF);	// clearing of ADIF, it is done by writing 1 to it
  
-/*   return (ADC); */
-/* } */
+  return (ADC);
+}
+#endif
 
 char buffer[16];
 
@@ -289,22 +294,24 @@ int main(void) {
     lcd_puts(bufferLCD);
     lcd_puts(" A");
 #endif
+#if defined(ADC)
     // LCD Power
-    //if (switchToDo == 0) {
-    // if (j-- == 0){
-    //j = 13;
-    //	adc = ADC_read(1);
-    //	itoa(adc, bufferLCD, 10);
-    //	lcd_gotoxy(12,1); //erase
-    //	lcd_puts("    ");   
-    //	lcd_gotoxy(12,1);
-    //	lcd_puts(bufferLCD);
-    //}
-    //}
-    //else {
-    //lcd_gotoxy(12,1); //erase
-    //lcd_puts("    ");        
-    //}
+    if (switchToDo == 0) {
+      if (j-- == 0){
+	j = 13;
+    	adc = ADC_read(1);
+    	itoa(adc, bufferLCD, 10);
+    	lcd_gotoxy(12,1); //erase
+    	lcd_puts("    ");   
+    	lcd_gotoxy(12,1);
+    	lcd_puts(bufferLCD);
+      }
+    }
+    else {
+    lcd_gotoxy(12,1); //erase
+    lcd_puts("    ");        
+    }
+#endif
     // process commands from uart
     process_uart();
     process_command();
@@ -516,11 +523,12 @@ void process_command() {
     i = N; //suppose motor is already moving at full speed
     switchToDo = N;
   }
-
+#if defined(ADC)
   else if(strcasestr(command_in,"POWER1") != NULL){
     uart_puts(":POWER1? "); uart_puts("\r\n");
-   //adc = ADC_read(1);
-   //print_value_int("POWER1", adc);
+    adc = ADC_read(1);
+    print_value_int("POWER1", adc);
   }
+#endif
   memset(command_in, 0, bufferLength); //erase the command
 }
