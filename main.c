@@ -57,7 +57,7 @@ char command_in[bufferLength];
 #if defined(U1000)
   #define step2position 200 //convert number of steps in physical position (here Angstroms)
   //pulses speed and acceleration
-  int N = 50; //number of pulses to fully accelerate. 50 semble correct
+  unsigned long N = 50; //number of pulses to fully accelerate. 50 semble correct
   int speedLow = 11000; //minimum speed (actually period)
   int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
   #define DUTY 10 //duty cycle for pulses (in %)
