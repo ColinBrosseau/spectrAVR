@@ -38,10 +38,10 @@ void copy_command () {
   memcpy(command_in, data_in, bufferLength);
   // Now clear data_in, the UART can reuse it now
   memset(data_in, 0, bufferLength);
-  uart_puts("data_in cleared");
-  uart_puts(RETURN_NEWLINE);
-  uart_puts(data_in);
-  uart_puts(RETURN_NEWLINE);
+  //uart_puts("data_in cleared");
+  //uart_puts(RETURN_NEWLINE);
+  //uart_puts(data_in);
+  //uart_puts(RETURN_NEWLINE);
 }
 
 
@@ -83,10 +83,10 @@ void process_uart(){
 
   while(ok) { //loop until no more character to read in ringbuffer or end of command detected
     itoa(c, buffer, 10);
-    uart_puts(buffer);
-    uart_puts(" ");
+    //uart_puts(buffer);
+    //uart_puts(" ");
     uart_putc( (unsigned char)c ); //echo back input character
-    uart_puts(RETURN_NEWLINE);
+    //uart_puts(RETURN_NEWLINE);
 
     // new data available from UART check for Frame or Overrun error
     if ( c & UART_FRAME_ERROR ) {
@@ -112,16 +112,16 @@ void process_uart(){
     if (data_in[data_count] == CHAR_RETURN) {
       // Reset to 0, ready to go again
       data_count = 0;
-      uart_puts(RETURN_NEWLINE);
-      uart_puts(RETURN_NEWLINE);
-      uart_puts(RETURN_NEWLINE);
+      //uart_puts(RETURN_NEWLINE);
+      //uart_puts(RETURN_NEWLINE);
+      //uart_puts(RETURN_NEWLINE);
 
-      uart_puts("commande ->");
-      uart_puts(RETURN_NEWLINE);
-      uart_puts(RETURN_NEWLINE);
-      uart_puts(data_in);
-      uart_puts(RETURN_NEWLINE);
-      uart_puts(RETURN_NEWLINE);
+      //uart_puts("commande ->");
+      //uart_puts(RETURN_NEWLINE);
+      //uart_puts(RETURN_NEWLINE);
+      //uart_puts(data_in);
+      //uart_puts(RETURN_NEWLINE);
+      //uart_puts(RETURN_NEWLINE);
       
       copy_command();
       //process_command();

@@ -8,18 +8,21 @@
 //    Backlash doesn't work (?) for HR320
 //    put all spectrometers code in firmware. Select at boot from jumpers or command selectable? Auto detect?
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
+//-----
+//Done
+//
 //Solved bugs:
-//    Remove bug "(up) number\r" same as "A number\r" : not a bug, a screen "feature"
-//    Remove bug "(up)number\r" same as "A 0\r" : not a bug, a screen "feature"
+//    bug "(up) number\r" same as "A number\r" : not a bug, a screen "feature"
+//    bug "(up)number\r" same as "A 0\r" : not a bug, a screen "feature"
 //Done improvements
 //    Merge pin assigment for lcd for U1000 and HR320
 
 #define LCD
-//#define ADCPRESENT
+#define ADCPRESENT
 
 #define UART_BAUD_RATE 57600 //uart speed
 
-#define Version "1.98g" //firmware version
+#define Version "1.98h" //firmware version
 
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
@@ -467,11 +470,11 @@ void process_command() {
 
   if(strcasestr(command_in,"A") != NULL){
     if(strcasestr(command_in,"?") != NULL){
-      uart_puts(":A? "); uart_puts("\r\n");
+      //uart_puts(":A? "); uart_puts("\r\n");
       print_value("A", Position_A);
     }
     else {
-      uart_puts(":A "); uart_puts("\r\n");
+      //uart_puts(":A "); uart_puts("\r\n");
       Position_A = parse_assignment(command_in);
       Position = Position_A*step2position;
       uart_ok();
@@ -479,7 +482,7 @@ void process_command() {
   }
 
   else if(strcasestr(command_in,"GOTO") != NULL){
-    uart_puts(":GOTO \r\n"); 
+    //uart_puts(":GOTO \r\n"); 
     Position2go_A = parse_assignment(command_in);
     Position2go = Position2go_A*step2position;
 
@@ -525,7 +528,7 @@ void process_command() {
   }
 #if defined(ADCPRESENT)
   else if(strcasestr(command_in,"POWER1") != NULL){
-    uart_puts(":POWER1? "); uart_puts("\r\n");
+    //uart_puts(":POWER1? "); uart_puts("\r\n");
     adc = ADC_read(1);
     print_value_int("POWER1", adc);
   }
