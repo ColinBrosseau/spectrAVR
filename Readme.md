@@ -1,3 +1,13 @@
+To use
+
+make
+<reset the controller while holding the program button>
+make program
+<release the program button>
+<reset the controller>
+
+------
+
 Create impulsions (an impulsion is low logic level) on a pin of the uC. Pin is alternativelly low and high (variable period, duty-cycle adjusted to 10%). Uses interrupt (non blocking). Create 10000 pulses and then stops.
 
 There is now an auto acceleration feature to test spectrometer capabilities.

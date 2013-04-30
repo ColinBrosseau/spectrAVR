@@ -1,5 +1,5 @@
-#define U1000
-//#define HR320
+//#define U1000
+#define HR320
 
 //see http://www.avr-asm-tutorial.net/avr_en/beginner/PDETAIL.html#IOPORTS                                                    
 #define PORT(x) (*(&x - 0))      /* address of data register of port x */

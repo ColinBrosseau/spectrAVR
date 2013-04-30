@@ -5,9 +5,9 @@
 # make coff = Convert ELF to AVR COFF (for use with AVR Studio 3.x or VMLAB).
 # make extcoff = Convert ELF to AVR Extended COFF (for use with AVR Studio
 #                4.07 or greater).
-# make program = Download the hex file to the device, using avrdude.  Please
+# make program2 = Download the hex file to the device, using avrdude.  Please
 #                customize the avrdude settings below first!
-# make programbut = Program with butterfly bootloader
+# make program = Program with butterfly bootloader
 # make filename.s = Just compile filename.c into the assembler code only
 #
 # To rebuild project do "make clean" then "make all".
@@ -257,10 +257,10 @@ gccversion :
 	@$(CC) --version
 
 # Program the device.  
-program: $(TARGET).hex $(TARGET).eep
+program2: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
-programbut:
+program:
 	avrdude -p atmega16 -c butterfly v -b 57600 -F -P /dev/ttyUSB0  -U flash:w:main.hex
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
