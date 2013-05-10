@@ -93,16 +93,16 @@ unsigned short j; //counter (delay) for ADC print on LCD
                              //this variable needs to be volatile because it is changed by an interrupt function
 
   #define INPUT_PULSES_UP PD2 // Define INPUT_PULSE pin on PD2 (Int0)
-  #define INPUT_PULSES_DOWN PB2 // Define INPUT_DIRECTION pin on PD4 
+  #define INPUT_PULSES_DOWN PD4 // Define INPUT_DIRECTION pin on PD4 
   #define PULSES_UP PD5 // Spectrometer pulses pin on PD5 
-  #define PULSES_DOWN PB1 // Spectrometer direction pin on PD6 //will have to change to int2 pin
+  #define PULSES_DOWN PD6 // Spectrometer direction pin on PD6 //will have to change to int2 pin
   #define LED PA0 // Display led pin on PA0 
   #define PHOTODIODE1 PA1 // Voltage Input related to photodiode
 
   #define PORT_INPUT_PULSES_UP PORTD //PORT of INPUT_PULSES_UP pin
-  #define PORT_INPUT_PULSES_DOWN PORTB //PORT of INPUT_PULSES_DOWN pin
+  #define PORT_INPUT_PULSES_DOWN PORTD //PORT of INPUT_PULSES_DOWN pin
   #define PORT_PULSES_UP PORTD //PORT of PULSES_UP pin
-  #define PORT_PULSES_DOWN PORTB //PORT of PULSES_DOWN pin //will have to change to int2 pin
+  #define PORT_PULSES_DOWN PORTD //PORT of PULSES_DOWN pin //will have to change to int2 pin
   #define PORT_LED PORTA //PORT of led pin
   #define PORT_PHOTODIODE1 PORTA // PORT of Input related to photodiode
 

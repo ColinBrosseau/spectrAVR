@@ -7,6 +7,11 @@ make program
 <reset the controller>
 
 ------
+TODO
+
+Create tutorial/software repo that contains everything to transfert firmware to the board (linux and windows).
+
+------
 
 Create impulsions (an impulsion is low logic level) on a pin of the uC. Pin is alternativelly low and high (variable period, duty-cycle adjusted to 10%). Uses interrupt (non blocking). Create 10000 pulses and then stops.
 
