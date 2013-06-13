@@ -87,7 +87,8 @@ unsigned short j; //counter (delay) for ADC print on LCD
   //pulses speed and acceleration
   int N = 500; //number of pulses to fully accelerate. 50 semble correct
   int speedLow = 64000; //minimum speed (actually period) 64000 = 187 Hz
-  int speedFast = 40000; //maxmimum speed (actually period). 40000 = 300 Hz
+  int speedFast = 64000; //maxmimum speed (actually period). 40000 = 300 Hz
+  // speedFast=40000 et speedLow=64000: petits decalages qui s'accumulent avec le temps
   #define DUTY 20 //duty cycle for pulses (in %)
   volatile int period = 30000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
