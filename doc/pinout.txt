@@ -92,3 +92,66 @@ Hitachi HD44780
 14  D7 - Data Bit 7
 15  BLA - Backlight Anode (+)
 16  BLK - Backlight Cathode (-)
+
+
+Timer1
+mega8 p.99
+mega16 p.113
+
+Timer/Counter 1 Control Register B – TCCR1B
+CS12 CS11 CS10 Description
+0    0 	  0    No clock source. (Timer/Counter stopped)
+0    0 	  1    clkIO/1 (No prescaling)
+0    1 	  0    clkIO/8 (From prescaler)
+0    1 	  1    clkIO/64 (From prescaler)
+1    0 	  0    clkIO/256 (From prescaler)
+1    0 	  1    clkIO/1024 (From prescaler)
+1    1 	  0    External clock source on T1 pin. Clock on falling edge
+1    1 	  1    External clock source on T1 pin. Clock on rising edge
+
+CTC timer calculation
+(Mode 4, CTC on OCR1A)
+
+Period (s) = Prescaler / clkIO * OCR1A
+
+clkIO is microcontroller cristal frequency (Hz)
+Prescaler is given by previous table
+
+---
+
+ADC Multiplexer pin Selection Register
+ 	7 bit 	6 bit 	5 bit 	4 bit 	3 bit 	2 bit 	1 bit 	0 bit 
+ADMUX	REFS1	REFS0 	ADLAR 	- 	MUX3 	MUX2 	MUX1 	MUX0 
+
+MUX3    MUX2    MUX1    MUX0    Pin that will be read
+0        0       0       0        PORTC0    Analogic0
+0        0       0       1        PORTC1    Analogic1
+0        0       1       0        PORTC2    Analogic2
+0        0       1       1        PORTC3    Analogic3
+0        1       0       0        PORTC4    Analogic4
+0        1       0       1        PORTC5    Analogic5
+
+     REFS1	REFS0 	Voltage Reference Selection 
+     0		0 	AREF, Internal Vref turned off 
+     0		1 	AVcc with external capacitor on AREF pin 
+     1		0 	Reserved 
+     1		1 	Internal 1.1V (ATmega168/328) or  2.56V on (ATmega8)
+
+---
+ADC Clock divider
+ADC Control and Status Register A
+    	7 bit	6 bit 	5 bit 	4 bit 	3 bit 	2 bit 	1 bit 	0 bit 
+ADCSRA	ADEN 	ADSC 	ADFR* 	ADIF 	ADIE 	ADPS2 	ADPS1 	ADPS0 
+
+     ADPS2	ADPS1 	ADPS0 	Division Factor 
+     0		0	0	2 
+     0		0	1	2 
+     0		1	0	4 
+     0		1	1	8 
+     1		0	0	16 
+     1		0	1	32 
+     1		1	0	64 
+     1		1	1	128 
+
+
+
