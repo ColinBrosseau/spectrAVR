@@ -1,10 +1,11 @@
+//SpectrAVR
+//
 // ATmega16 @ 12 MHz
 //
 //based on https://sites.google.com/site/qeewiki/books/avr-guide/timer-on-the-atmega8
 // 
 //Possible improvements:
 //    Remove RW pin for LCD usage (need to change lcd.h, lcd.c) (Useless to read from lcd)
-//    Merge pin assigment for U1000 and HR320
 //    Backlash doesn't work (?) for HR320
 //    put all spectrometers code in firmware. Select at boot from jumpers or command selectable? Auto detect?
 //    Use PWM for easier pulses generation. See http://enricorossi.org/blog/2010/avr_atmega16_fast_pwm/
@@ -22,7 +23,7 @@
 
 #define UART_BAUD_RATE 57600 //uart speed
 
-#define Version "1.98h" //firmware version
+#define Version "1.98i" //firmware version
 
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
@@ -86,8 +87,8 @@ unsigned short j; //counter (delay) for ADC print on LCD
   #define HighPulse  // Pulses are HIGH. 
   //pulses speed and acceleration
   int N = 500; //number of pulses to fully accelerate. 50 semble correct
-  int speedLow = 64000; //minimum speed (actually period) 64000 = 187 Hz
-  int speedFast = 64000; //maxmimum speed (actually period). 40000 = 300 Hz
+  int speedLow = 16000; //minimum speed (actually period) 64000 = 187 Hz
+  int speedFast = 16000; //maxmimum speed (actually period). 40000 = 300 Hz
   // speedFast=40000 et speedLow=64000: petits decalages qui s'accumulent avec le temps
   #define DUTY 20 //duty cycle for pulses (in %)
   volatile int period = 30000; //duration between pulses (timer units) (16000 = 1 ms)
@@ -219,8 +220,8 @@ void initIO(void) {
   OCR1A = 50000;
   TCCR1B |= (1 << WGM12); // Mode 4, CTC on OCR1A
   TIMSK |= (1 << OCIE1A); //Set interrupt on compare match
-  TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer (manual p. 113)
-  //TCCR1B |= (1 << CS11); // set prescaler to 8 and start the timer (manual p. 113)
+  //TCCR1B |= (1 << CS10); // set prescaler to 1 and start the timer (manual p. 113)
+  TCCR1B |= (1 << CS11); // set prescaler to 8 and start the timer (manual p. 113)
   sei(); // enable interrupts
    
   //Turn on INPUT_PULSE_UP pin interrupt on falling edge.
