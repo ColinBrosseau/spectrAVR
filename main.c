@@ -23,7 +23,7 @@
 
 #define UART_BAUD_RATE 57600 //uart speed
 
-#define Version "1.98i" //firmware version
+#define Version "1.98j" //firmware version
 
 #include <avr/io.h>
 #include <avr/interrupt.h> //for uart
@@ -58,8 +58,8 @@ unsigned short j; //counter (delay) for ADC print on LCD
   #define step2position 200 //convert number of steps in physical position (here Angstroms)
   //pulses speed and acceleration
   unsigned long N = 50; //number of pulses to fully accelerate. 50 semble correct
-  int speedLow = 11000; //minimum speed (actually period)
-  int speedFast = 7000; //maxmimum speed (actually period). <6500 too low, 7000 correct
+  int speedLow = 22000; //minimum speed (actually period)
+  int speedFast = 14000; //maxmimum speed (actually period). <6500 too low, 7000 correct
   #define DUTY 10 //duty cycle for pulses (in %)
   volatile int period = 12000; //duration between pulses (timer units) (16000 = 1 ms)
                              //this variable needs to be volatile because it is changed by an interrupt function
